@@ -1,0 +1,752 @@
+[
+	{
+	  "text": "爱",
+	  "pronunciation": "ài",
+	  "description": "to love; affection; to be fond of; to like "
+	},
+	{
+	  "text": "八",
+	  "pronunciation": "bā",
+	  "description": "eight; 8 "
+	},
+	{
+	  "text": "爸爸",
+	  "pronunciation": "bà ba",
+	  "description": "father (informal); CL:个[ge4] "
+	},
+	{
+	  "text": "杯子",
+	  "pronunciation": "bēi zi",
+	  "description": "cup; glass; CL:个[ge4] "
+	},
+	{
+	  "text": "北京",
+	  "pronunciation": "běi jīng",
+	  "description": "Beijing; capital of People's Republic of China; Peking; PRC government "
+	},
+	{
+	  "text": "本",
+	  "pronunciation": "běn",
+	  "description": "origin; source; roots or stems of plants; this; the current; root; foundation; basis; classifier for books"
+	},
+	{
+	  "text": "不客气",
+	  "pronunciation": "bú kè qi",
+	  "description": "you're welcome; it's my pleasure (answer to someone who thanks) "
+	},
+	{
+	  "text": "不",
+	  "pronunciation": "bù",
+	  "description": "not (negative prefix); no "
+	},
+	{
+	  "text": "菜",
+	  "pronunciation": "cài",
+	  "description": "dish (type of food); vegetables; vegetable; cuisine; CL:盘[pan2] "
+	},
+	{
+	  "text": "茶",
+	  "pronunciation": "chá",
+	  "description": "tea; tea plant; CL:杯[bei1] "
+	},
+	{
+	  "text": "吃",
+	  "pronunciation": "chī",
+	  "description": "to eat; to have one's meal; to eradicate; to destroy; to absorb; to suffer; to exhaust "
+	},
+	{
+	  "text": "出租车",
+	  "pronunciation": "chū zū chē",
+	  "description": "taxi "
+	},
+	{
+	  "text": "打电话",
+	  "pronunciation": "dǎ diàn huà",
+	  "description": "to make a phone call "
+	},
+	{
+	  "text": "大",
+	  "pronunciation": "dà",
+	  "description": "big; huge; large; major; great; wide; deep; oldest; eldest "
+	},
+	{
+	  "text": "的",
+	  "pronunciation": "de",
+	  "description": "of; structural particle: used before a noun"
+	},
+	{
+	  "text": "点",
+	  "pronunciation": "diǎn",
+	  "description": "a little; a bit; drop (of liquid); stain; spot; speck; jot; dot stroke (in Chinese characters); decimal point; point; mark (of degree or level); a place (with certain characteristics); iron bell; o’clock; some; (point) unit of measurement for type; to touch on briefly; to make clear; to light; to ignite; to kindle; period of time at night (24 minutes) (old); a drip; to dibble; classifier for small indeterminate quantities "
+	},
+	{
+	  "text": "电脑",
+	  "pronunciation": "diàn nǎo",
+	  "description": "computer; CL:台[tai2] "
+	},
+	{
+	  "text": "电视",
+	  "pronunciation": "diàn shì",
+	  "description": "television; TV; CL:台[tai2] "
+	},
+	{
+	  "text": "电影",
+	  "pronunciation": "diàn yǐng",
+	  "description": "movie; film; CL:部[bu4] "
+	},
+	{
+	  "text": "东西",
+	  "pronunciation": "dōng xi",
+	  "description": "thing; stuff; person; CL:个[ge4] "
+	},
+	{
+	  "text": "都",
+	  "pronunciation": "dōu",
+	  "description": "all"
+	},
+	{
+	  "text": "读",
+	  "pronunciation": "dú",
+	  "description": "to read; to study; reading of word (i.e. pronunciation)"
+	},
+	{
+	  "text": "对不起",
+	  "pronunciation": "duì bu qǐ",
+	  "description": "I'm sorry; excuse me; pardon me; if you please; sorry? (please repeat); unworthy; to let down; "
+	},
+	{
+	  "text": "多",
+	  "pronunciation": "duō",
+	  "description": "many; much; a lot of; numerous; multi- "
+	},
+	{
+	  "text": "多少",
+	  "pronunciation": "duō shǎo",
+	  "description": "how much; how many "
+	},
+	{
+	  "text": "儿子",
+	  "pronunciation": "ér zi",
+	  "description": "son "
+	},
+	{
+	  "text": "二",
+	  "pronunciation": "èr",
+	  "description": "two; 2; stupid (Beijing dialect) "
+	},
+	{
+	  "text": "饭店",
+	  "pronunciation": "fàn diàn",
+	  "description": "restaurant; hotel; CL:家[jia1]"
+	},
+	{
+	  "text": "飞机",
+	  "pronunciation": "fēi jī",
+	  "description": "airplane; CL: 架[jia4] "
+	},
+	{
+	  "text": "分钟",
+	  "pronunciation": "fēn zhōng",
+	  "description": "minute "
+	},
+	{
+	  "text": "高兴",
+	  "pronunciation": "gāo xìng",
+	  "description": "happy; glad; willing (to do sth); in a cheerful mood "
+	},
+	{
+	  "text": "个",
+	  "pronunciation": "gè",
+	  "description": "classifier for people or objects in general; individual; this; that; size "
+	},
+	{
+	  "text": "工作",
+	  "pronunciation": "gōng zuò",
+	  "description": "job; work; construction; task; CL:个[ge4] "
+	},
+	{
+	  "text": "狗",
+	  "pronunciation": "gǒu",
+	  "description": "dog; CL:只[zhi1] "
+	},
+	{
+	  "text": "汉语",
+	  "pronunciation": "hàn yǔ",
+	  "description": "Chinese language "
+	},
+	{
+	  "text": "好",
+	  "pronunciation": "hǎo",
+	  "description": "good; well; proper; good to; easy to; very; so; (suffix indicating completion or readiness) "
+	},
+	{
+	  "text": "号",
+	  "pronunciation": "hào",
+	  "description": "day of a month; (suffix used after) name of a ship; (ordinal) number "
+	},
+	{
+	  "text": "喝",
+	  "pronunciation": "hē",
+	  "description": "to drink; to shout (a command) "
+	},
+	{
+	  "text": "和",
+	  "pronunciation": "hé",
+	  "description": "and; together with; with; sum; union; peace; harmony; surname He "
+	},
+	{
+	  "text": "很",
+	  "pronunciation": "hěn",
+	  "description": "very; (adverb of degree); quite; awfully "
+	},
+	{
+	  "text": "后面",
+	  "pronunciation": "hòu miàn",
+	  "description": "rear; back; behind; later; afterwards "
+	},
+	{
+	  "text": "回",
+	  "pronunciation": "huí",
+	  "description": "to go back; to turn around; to answer; to return; to circle; to revolve; Hui ethnic group; time; classifier for acts of a play; section or chapter (of a classic book) "
+	},
+	{
+	  "text": "会",
+	  "pronunciation": "huì",
+	  "description": "can; be possible; be able to; will; be likely to; be sure to; to assemble; to meet; to gather; to see; union; group; association; a moment (Taiwan pr. for this sense is hui3) "
+	},
+	{
+	  "text": "几",
+	  "pronunciation": "jǐ",
+	  "description": "how much; how many; several; a few "
+	},
+	{
+	  "text": "家",
+	  "pronunciation": "jiā",
+	  "description": "home; family; classifier for families or businesses; refers to the philosophical schools of pre-Han China; noun suffix for specialists in some activity such as musician or revolutionary"
+	},
+	{
+	  "text": "叫",
+	  "pronunciation": "jiào",
+	  "description": "to call; to shout; to order; to ask; to be called; by (indicates agent in the passive mood) "
+	},
+	{
+	  "text": "今天",
+	  "pronunciation": "jīn tiān",
+	  "description": "today; at the present "
+	},
+	{
+	  "text": "九",
+	  "pronunciation": "jiǔ",
+	  "description": "nine; 9 "
+	},
+	{
+	  "text": "开",
+	  "pronunciation": "kāi",
+	  "description": "to open; to start; to turn on; to operate (vehicle) "
+	},
+	{
+	  "text": "看",
+	  "pronunciation": "kàn",
+	  "description": "to look at "
+	},
+	{
+	  "text": "看见",
+	  "pronunciation": "kàn jiàn",
+	  "description": "to see; to catch sight of "
+	},
+	{
+	  "text": "块",
+	  "pronunciation": "kuài",
+	  "description": "unit of currency; lump (of earth); chunk; piece; classifier for pieces of cloth"
+	},
+	{
+	  "text": "来",
+	  "pronunciation": "lái",
+	  "description": "to come; to arrive; to come round; ever since; next "
+	},
+	{
+	  "text": "老师",
+	  "pronunciation": "lǎo shī",
+	  "description": "teacher; CL:个[ge4] "
+	},
+	{
+	  "text": "了",
+	  "pronunciation": "le",
+	  "description": "(completed action marker); (modal particle intensifying preceding clause) "
+	},
+	{
+	  "text": "冷",
+	  "pronunciation": "lěng",
+	  "description": "cold "
+	},
+	{
+	  "text": "里",
+	  "pronunciation": "lǐ",
+	  "description": "inside; lining; interior; internal "
+	},
+	{
+	  "text": "六",
+	  "pronunciation": "liù",
+	  "description": "six; 6 "
+	},
+	{
+	  "text": "吗",
+	  "pronunciation": "ma",
+	  "description": "(question tag) "
+	},
+	{
+	  "text": "妈妈",
+	  "pronunciation": "mā ma",
+	  "description": "mum; mama; mommy; mother; CL:个[ge4] "
+	},
+	{
+	  "text": "买",
+	  "pronunciation": "mǎi",
+	  "description": "to buy; to purchase "
+	},
+	{
+	  "text": "猫",
+	  "pronunciation": "māo",
+	  "description": "cat; CL:只[zhi1] "
+	},
+	{
+	  "text": "没关系",
+	  "pronunciation": "méi guān xi",
+	  "description": "it doesn't matter "
+	},
+	{
+	  "text": "没有",
+	  "pronunciation": "méi yǒu",
+	  "description": "haven't; hasn't; doesn't exist; to not have; to not be; "
+	},
+	{
+	  "text": "米饭",
+	  "pronunciation": "mǐ fàn",
+	  "description": "(cooked) rice "
+	},
+	{
+	  "text": "名字",
+	  "pronunciation": "míng zi",
+	  "description": "name (of a person or thing); CL:个[ge4] "
+	},
+	{
+	  "text": "明天",
+	  "pronunciation": "míng tiān",
+	  "description": "tomorrow "
+	},
+	{
+	  "text": "哪",
+	  "pronunciation": "nǎ",
+	  "description": "which? (interrogative"
+	},
+	{
+	  "text": "哪儿",
+	  "pronunciation": "nǎ er",
+	  "description": "where?; wherever; anywhere "
+	},
+	{
+	  "text": "那",
+	  "pronunciation": "nà",
+	  "description": "that; those; then (in that case); commonly pr. [nei4] before a classifier"
+	},
+	{
+	  "text": "呢",
+	  "pronunciation": "ne",
+	  "description": "(question particle for subjects already mentioned) "
+	},
+	{
+	  "text": "能",
+	  "pronunciation": "néng",
+	  "description": "to be able to; to be capable of; ability; capability; able; capable; can possibly; (usually used in the negative) to have the possibility of "
+	},
+	{
+	  "text": "你",
+	  "pronunciation": "nǐ",
+	  "description": "you (informal) "
+	},
+	{
+	  "text": "年",
+	  "pronunciation": "nián",
+	  "description": "year; CL:个[ge4] "
+	},
+	{
+	  "text": "女儿",
+	  "pronunciation": "nǚ ér",
+	  "description": "daughter "
+	},
+	{
+	  "text": "朋友",
+	  "pronunciation": "péng you",
+	  "description": "friend; CL:个[ge4] "
+	},
+	{
+	  "text": "漂亮",
+	  "pronunciation": "piào liang",
+	  "description": "pretty; beautiful "
+	},
+	{
+	  "text": "苹果",
+	  "pronunciation": "píng guǒ",
+	  "description": "apple; CL:个[ge4] "
+	},
+	{
+	  "text": "七",
+	  "pronunciation": "qī",
+	  "description": "seven; 7 "
+	},
+	{
+	  "text": "前面",
+	  "pronunciation": "qián miàn",
+	  "description": "ahead; in front; preceding; above "
+	},
+	{
+	  "text": "钱",
+	  "pronunciation": "qián",
+	  "description": "coin; money; CL:笔[bi3] "
+	},
+	{
+	  "text": "请",
+	  "pronunciation": "qǐng",
+	  "description": "to ask; to invite; please (do sth); to treat (to a meal etc); to request "
+	},
+	{
+	  "text": "去",
+	  "pronunciation": "qù",
+	  "description": "to go; to go to (a place); to cause to go or send (sb); to remove; to get rid of; (when used either before or after a verb) to go in order to do sth; to be apart from in space or time; (after a verb of motion indicates movement away from the speaker); (used after certain verbs to indicate detachment or separation); (of a time or an event etc) just passed or elapsed "
+	},
+	{
+	  "text": "热",
+	  "pronunciation": "rè",
+	  "description": "heat; to heat up; fervent; hot (of weather); warm up "
+	},
+	{
+	  "text": "人",
+	  "pronunciation": "rén",
+	  "description": "man; person; people; CL:个[ge4] "
+	},
+	{
+	  "text": "认识",
+	  "pronunciation": "rèn shi",
+	  "description": "to know; to recognize; to be familiar with; acquainted with sth; knowledge; understanding; awareness; cognition "
+	},
+	{
+	  "text": "三",
+	  "pronunciation": "sān",
+	  "description": "three; 3 "
+	},
+	{
+	  "text": "商店",
+	  "pronunciation": "shāng diàn",
+	  "description": "store; shop; CL:家[jia1] "
+	},
+	{
+	  "text": "上",
+	  "pronunciation": "shàng",
+	  "description": "on "
+	},
+	{
+	  "text": "上午",
+	  "pronunciation": "shàng wǔ",
+	  "description": "morning; CL:个[ge4] "
+	},
+	{
+	  "text": "少",
+	  "pronunciation": "shǎo",
+	  "description": "few; little; lack "
+	},
+	{
+	  "text": "谁",
+	  "pronunciation": "shéi",
+	  "description": "who; also pronounced shui2 "
+	},
+	{
+	  "text": "什么",
+	  "pronunciation": "shén me",
+	  "description": "what?; who?; something; anything "
+	},
+	{
+	  "text": "十",
+	  "pronunciation": "shí",
+	  "description": "ten; 10 "
+	},
+	{
+	  "text": "时候",
+	  "pronunciation": "shí hou",
+	  "description": "time; length of time; moment; period "
+	},
+	{
+	  "text": "是",
+	  "pronunciation": "shì",
+	  "description": "to be; yes "
+	},
+	{
+	  "text": "书",
+	  "pronunciation": "shū",
+	  "description": "book; letter; CL:本[ben3] "
+	},
+	{
+	  "text": "水",
+	  "pronunciation": "shuǐ",
+	  "description": "water; river; liquid; beverage "
+	},
+	{
+	  "text": "水果",
+	  "pronunciation": "shuǐguǒ",
+	  "description": "fruit "
+	},
+	{
+	  "text": "睡觉",
+	  "pronunciation": "shuì jiào",
+	  "description": "to go to bed; to go to sleep "
+	},
+	{
+	  "text": "说",
+	  "pronunciation": "shuō",
+	  "description": "to speak; to say; to explain; to scold; to tell off; a theory (usually in compounds such as 日心说 heliocentric theory); "
+	},
+	{
+	  "text": "四",
+	  "pronunciation": "sì",
+	  "description": "four; 4 "
+	},
+	{
+	  "text": "岁",
+	  "pronunciation": "suì",
+	  "description": "classifier for years (of age); year; year (of crop harvests) "
+	},
+	{
+	  "text": "他",
+	  "pronunciation": "tā",
+	  "description": "he or him; (used for either sex when the sex is unknown or unimportant); (used before sb's name for emphasis); (used as a meaningless mock object); other; another "
+	},
+	{
+	  "text": "她",
+	  "pronunciation": "tā",
+	  "description": "she "
+	},
+	{
+	  "text": "太",
+	  "pronunciation": "tài",
+	  "description": "too (much); very; extremely; highest; greatest "
+	},
+	{
+	  "text": "天气",
+	  "pronunciation": "tiān qì",
+	  "description": "weather "
+	},
+	{
+	  "text": "听",
+	  "pronunciation": "tīng",
+	  "description": "to listen; to hear; to obey; a can (loanword from English 'tin'); classifier for canned beverages "
+	},
+	{
+	  "text": "同学",
+	  "pronunciation": "tóng xué",
+	  "description": "(fellow) classmate; CL:位[wei4] "
+	},
+	{
+	  "text": "喂",
+	  "pronunciation": "wèi",
+	  "description": "hello (interj."
+	},
+	{
+	  "text": "我",
+	  "pronunciation": "wǒ",
+	  "description": "I; me; my "
+	},
+	{
+	  "text": "我们",
+	  "pronunciation": "wǒ men",
+	  "description": "we; us; ourselves; our "
+	},
+	{
+	  "text": "五",
+	  "pronunciation": "wǔ",
+	  "description": "five; 5 "
+	},
+	{
+	  "text": "喜欢",
+	  "pronunciation": "xǐ huan",
+	  "description": "to like; to be fond of "
+	},
+	{
+	  "text": "下",
+	  "pronunciation": "xià",
+	  "description": "down; downwards; below; lower; later; next (week etc); second (of two parts); to decline; to go down "
+	},
+	{
+	  "text": "下午",
+	  "pronunciation": "xià wǔ",
+	  "description": "afternoon; p.m.; CL:个[ge4] "
+	},
+	{
+	  "text": "下雨",
+	  "pronunciation": "xià yǔ",
+	  "description": "to rain; rainy "
+	},
+	{
+	  "text": "先生",
+	  "pronunciation": "xiān sheng",
+	  "description": "Mister (Mr.); husband; doctor (topolect); teacher; CL:个[ge4] "
+	},
+	{
+	  "text": "现在",
+	  "pronunciation": "xiàn zài",
+	  "description": "now; at present; at the moment; modern; current; nowadays "
+	},
+	{
+	  "text": "想",
+	  "pronunciation": "xiǎng",
+	  "description": "to think; to believe; to suppose; to wish; to want; to miss "
+	},
+	{
+	  "text": "小",
+	  "pronunciation": "xiǎo",
+	  "description": "small; tiny; young "
+	},
+	{
+	  "text": "小姐",
+	  "pronunciation": "xiǎo jie",
+	  "description": "young lady; Miss; (slang) prostitute; CL:个[ge4] "
+	},
+	{
+	  "text": "些",
+	  "pronunciation": "xiē",
+	  "description": "some; few; several; (a measure word) "
+	},
+	{
+	  "text": "写",
+	  "pronunciation": "xiě",
+	  "description": "to write "
+	},
+	{
+	  "text": "谢谢",
+	  "pronunciation": "xiè xie",
+	  "description": "to thank; thanks "
+	},
+	{
+	  "text": "星期",
+	  "pronunciation": "xīng qī",
+	  "description": "week; CL:个[ge4] "
+	},
+	{
+	  "text": "学生",
+	  "pronunciation": "xué sheng",
+	  "description": "student; school child "
+	},
+	{
+	  "text": "学习",
+	  "pronunciation": "xué xí",
+	  "description": "to learn; to study "
+	},
+	{
+	  "text": "学校",
+	  "pronunciation": "xué xiào",
+	  "description": "school; CL:所[suo3] "
+	},
+	{
+	  "text": "一",
+	  "pronunciation": "yī",
+	  "description": "one; 1; single; a (article); as soon as; entire; whole; all; throughout; 'one' radical in Chinese characters (Kangxi radical 1) "
+	},
+	{
+	  "text": "一点儿",
+	  "pronunciation": "yī diǎn er",
+	  "description": "a little (bit) "
+	},
+	{
+	  "text": "医生",
+	  "pronunciation": "yī shēng",
+	  "description": "doctor; CL:个[ge4] "
+	},
+	{
+	  "text": "医院",
+	  "pronunciation": "yī yuàn",
+	  "description": "hospital; CL:所[suo3] "
+	},
+	{
+	  "text": "衣服",
+	  "pronunciation": "yī fu",
+	  "description": "clothes; CL:件[jian4] "
+	},
+	{
+	  "text": "椅子",
+	  "pronunciation": "yǐ zi",
+	  "description": "chair; CL:把[ba3] "
+	},
+	{
+	  "text": "有",
+	  "pronunciation": "yǒu",
+	  "description": "to have; there is; there are; to exist; to be "
+	},
+	{
+	  "text": "月",
+	  "pronunciation": "yuè",
+	  "description": "month; moon; CL:个[ge4] "
+	},
+	{
+	  "text": "再见",
+	  "pronunciation": "zài jiàn",
+	  "description": "goodbye; see you again later "
+	},
+	{
+	  "text": "在",
+	  "pronunciation": "zài",
+	  "description": "(located) at; (to be) in; to exist; in the middle of doing sth; (indicating an action in progress) "
+	},
+	{
+	  "text": "怎么",
+	  "pronunciation": "zěn me",
+	  "description": "how?; what?; why? "
+	},
+	{
+	  "text": "怎么样",
+	  "pronunciation": "zěn me yàng",
+	  "description": "how are things? how?; how about?; how was it? "
+	},
+	{
+	  "text": "这",
+	  "pronunciation": "zhè",
+	  "description": "this; these; (commonly pr. [zhei4] before a classifier"
+	},
+	{
+	  "text": "中国",
+	  "pronunciation": "zhōng guó",
+	  "description": "China; Middle Kingdom "
+	},
+	{
+	  "text": "中午",
+	  "pronunciation": "zhōng wǔ",
+	  "description": "noon; midday; CL:个[ge4] "
+	},
+	{
+	  "text": "住",
+	  "pronunciation": "zhù",
+	  "description": "to live; to dwell; to stay; to reside; to stop "
+	},
+	{
+	  "text": "桌子",
+	  "pronunciation": "zhuō zi",
+	  "description": "table; desk; CL:张[zhang1] "
+	},
+	{
+	  "text": "字",
+	  "pronunciation": "zì",
+	  "description": "letter; character; word; symbol; CL:个[ge4] "
+	},
+	{
+	  "text": "昨天",
+	  "pronunciation": "zuó tiān",
+	  "description": "yesterday "
+	},
+	{
+	  "text": "做",
+	  "pronunciation": "zuò",
+	  "description": "to do; to make; to produce; to write; to compose; to act as; to engage in; to hold (a party); to be; to become; to function (in some capacity); to serve as; to be used for; to form (a bond or relationship); to pretend; to feign; to act a part; to put on appearance "
+	},
+	{
+	  "text": "坐",
+	  "pronunciation": "zuò",
+	  "description": "to sit; to take a seat; to take (a bus"
+	}
+   ]

@@ -1,0 +1,752 @@
+[
+	{
+	  "text": "吧",
+	  "pronunciation": "ba",
+	  "description": "modal particle indicating polite suggestion;...right?;...OK? "
+	},
+	{
+	  "text": "白",
+	  "pronunciation": "bái",
+	  "description": "white; snowy; pure; bright; empty; blank; plain; clear; to make clear; in vain; gratuitous; free of charge; reactionary; anti-communist; funeral; to stare coldly; to write wrong character; to state; to explain; vernacular; spoken lines in opera; surname Bai "
+	},
+	{
+	  "text": "百",
+	  "pronunciation": "bǎi",
+	  "description": "hundred; numerous; all kinds of; surname Bai "
+	},
+	{
+	  "text": "帮助",
+	  "pronunciation": "bāng zhù",
+	  "description": "assistance; aid; to help; to assist "
+	},
+	{
+	  "text": "报纸",
+	  "pronunciation": "bào zhǐ",
+	  "description": "newspaper; newsprint; CL:份[fen4] "
+	},
+	{
+	  "text": "比",
+	  "pronunciation": "bǐ",
+	  "description": "particle used for comparison and '-er than'; to compare; to contrast; to gesture (with hands); ratio "
+	},
+	{
+	  "text": "别",
+	  "pronunciation": "bié",
+	  "description": "do not; must not; to pin; to leave; to depart; to separate; to distinguish; to classify; other; another "
+	},
+	{
+	  "text": "宾馆",
+	  "pronunciation": "bīn guǎn",
+	  "description": "guesthouse; CL:个"
+	},
+	{
+	  "text": "长",
+	  "pronunciation": "cháng",
+	  "description": "long; length "
+	},
+	{
+	  "text": "唱歌",
+	  "pronunciation": "chàng gē",
+	  "description": "to sing a song "
+	},
+	{
+	  "text": "出",
+	  "pronunciation": "chū",
+	  "description": "to go out; to come out; to occur; to produce; to go beyond; to rise; to put forth; to happen; classifier for dramas"
+	},
+	{
+	  "text": "穿",
+	  "pronunciation": "chuān",
+	  "description": "to wear; to put on; to dress; to bore through; pierce; perforate; penetrate; pass through; to thread "
+	},
+	{
+	  "text": "次",
+	  "pronunciation": "cì",
+	  "description": "next in sequence; second; the second (day"
+	},
+	{
+	  "text": "从",
+	  "pronunciation": "cóng",
+	  "description": "from; via; passing through; through "
+	},
+	{
+	  "text": "错",
+	  "pronunciation": "cuò",
+	  "description": "mistake; error; blunder; fault; cross; uneven; wrong; CL:个 "
+	},
+	{
+	  "text": "打篮球",
+	  "pronunciation": "dǎ lán qiú",
+	  "description": "play basketball "
+	},
+	{
+	  "text": "大家",
+	  "pronunciation": "dà jiā",
+	  "description": "everyone "
+	},
+	{
+	  "text": "到",
+	  "pronunciation": "dào",
+	  "description": "to (a place); until (a time); up to; to go; to arrive "
+	},
+	{
+	  "text": "得",
+	  "pronunciation": "de",
+	  "description": "structural particle: used after a verb (or adjective as main verb)"
+	},
+	{
+	  "text": "等",
+	  "pronunciation": "děng",
+	  "description": "to wait for; to await; class (grade); et cetera; and so on; et al. (and other authors); after; as soon as; once; "
+	},
+	{
+	  "text": "弟弟",
+	  "pronunciation": "dì di",
+	  "description": "younger brother; CL:个"
+	},
+	{
+	  "text": "第一",
+	  "pronunciation": "dì yī",
+	  "description": "first; number one "
+	},
+	{
+	  "text": "懂",
+	  "pronunciation": "dǒng",
+	  "description": "to understand; to know "
+	},
+	{
+	  "text": "对",
+	  "pronunciation": "duì",
+	  "description": "towards; at; for "
+	},
+	{
+	  "text": "对",
+	  "pronunciation": "duì",
+	  "description": "right; correct "
+	},
+	{
+	  "text": "房间",
+	  "pronunciation": "fáng jiān",
+	  "description": "room; CL:间[jian1] "
+	},
+	{
+	  "text": "非常",
+	  "pronunciation": "fēi cháng",
+	  "description": "extraordinary; unusual; extreme; very; exceptional "
+	},
+	{
+	  "text": "服务员",
+	  "pronunciation": "fú wù yuán",
+	  "description": "waiter; waitress; attendant; customer service personnel; CL:个 "
+	},
+	{
+	  "text": "高",
+	  "pronunciation": "gāo",
+	  "description": "high; tall; above average; loud; your (honorific); surname Gao "
+	},
+	{
+	  "text": "告诉",
+	  "pronunciation": "gào su",
+	  "description": "to tell; to inform; to let know "
+	},
+	{
+	  "text": "哥哥",
+	  "pronunciation": "gē ge",
+	  "description": "older brother; CL:个"
+	},
+	{
+	  "text": "给",
+	  "pronunciation": "gěi",
+	  "description": "to (someone); for; for the benefit of; to give; to allow; to do sth (for sb); (passive particle) "
+	},
+	{
+	  "text": "公共汽车",
+	  "pronunciation": "gōng gòng qì chē",
+	  "description": "bus; CL:辆[liang4] "
+	},
+	{
+	  "text": "公司",
+	  "pronunciation": "gōng sī",
+	  "description": "(business) company; company; firm; corporation; incorporated; CL:家[jia1] "
+	},
+	{
+	  "text": "贵",
+	  "pronunciation": "guì",
+	  "description": "expensive; noble; your (name); precious "
+	},
+	{
+	  "text": "过",
+	  "pronunciation": "guo",
+	  "description": "(used after a verb) to indicate the completion of an action "
+	},
+	{
+	  "text": "孩子",
+	  "pronunciation": "hái zi",
+	  "description": "child "
+	},
+	{
+	  "text": "还",
+	  "pronunciation": "hái",
+	  "description": "still; yet; even more; still more; also; too; as well "
+	},
+	{
+	  "text": "好吃",
+	  "pronunciation": "hǎo chī",
+	  "description": "tasty; delicious "
+	},
+	{
+	  "text": "黑",
+	  "pronunciation": "hēi",
+	  "description": "black; dark; abbr. for Heilongjiang 黑龙江 province in northeast China "
+	},
+	{
+	  "text": "红",
+	  "pronunciation": "hóng",
+	  "description": "red; bonus; popular; revolutionary "
+	},
+	{
+	  "text": "火车站",
+	  "pronunciation": "huǒ chē zhàn",
+	  "description": "train station "
+	},
+	{
+	  "text": "机场",
+	  "pronunciation": "jī chǎng",
+	  "description": "airport; airfield; CL:家[jia1] "
+	},
+	{
+	  "text": "鸡蛋",
+	  "pronunciation": "jī dàn",
+	  "description": "(chicken) egg; hen's egg; CL:个"
+	},
+	{
+	  "text": "件",
+	  "pronunciation": "jiàn",
+	  "description": "item; component; classifier for events"
+	},
+	{
+	  "text": "教室",
+	  "pronunciation": "jiào shì",
+	  "description": "classroom; CL:间[jian1] "
+	},
+	{
+	  "text": "姐姐",
+	  "pronunciation": "jiě jie",
+	  "description": "older sister; CL:个 "
+	},
+	{
+	  "text": "介绍",
+	  "pronunciation": "jiè shào",
+	  "description": "to present; to introduce; to recommend; to suggest; to let know; to brief "
+	},
+	{
+	  "text": "近",
+	  "pronunciation": "jìn",
+	  "description": "near; close to; approximately "
+	},
+	{
+	  "text": "进",
+	  "pronunciation": "jìn",
+	  "description": "to enter; to advance; to come (or go) into; to receive or admit; to eat or drink; to submit or present; (used after a verb) into"
+	},
+	{
+	  "text": "就",
+	  "pronunciation": "jiù",
+	  "description": "just (emphasis); at once; right away; only; as early as; already; as soon as; then; in that case; as many as; even if; to approach; to move towards; to undertake; to engage in; to suffer; subjected to; to accomplish; to take advantage of; to go with (of foods); with regard to; concerning "
+	},
+	{
+	  "text": "觉得",
+	  "pronunciation": "jué de",
+	  "description": "to think; to feel "
+	},
+	{
+	  "text": "咖啡",
+	  "pronunciation": "kā fēi",
+	  "description": "coffee; CL:杯[bei1] "
+	},
+	{
+	  "text": "开始",
+	  "pronunciation": "kāi shǐ",
+	  "description": "to begin; beginning; to start; initial; CL:个 "
+	},
+	{
+	  "text": "考试",
+	  "pronunciation": "kǎo shì",
+	  "description": "exam; CL:次[ci4] "
+	},
+	{
+	  "text": "可能",
+	  "pronunciation": "kě néng",
+	  "description": "might (happen); possible; probable; possibility; probability; maybe; perhaps; CL:个 "
+	},
+	{
+	  "text": "可以",
+	  "pronunciation": "kě yǐ",
+	  "description": "can; may; possible; able to "
+	},
+	{
+	  "text": "课",
+	  "pronunciation": "kè",
+	  "description": "subject; course; class; lesson; CL:堂[tang2] "
+	},
+	{
+	  "text": "快",
+	  "pronunciation": "kuài",
+	  "description": "rapid; quick; speed; rate; soon; almost; to make haste; clever; sharp (of knives or wits); forthright; plain-spoken; gratified; pleased; pleasant "
+	},
+	{
+	  "text": "快乐",
+	  "pronunciation": "kuài lè",
+	  "description": "happy; merry "
+	},
+	{
+	  "text": "累",
+	  "pronunciation": "lèi",
+	  "description": "tired; weary; to strain; to wear out; to work hard "
+	},
+	{
+	  "text": "离",
+	  "pronunciation": "lí",
+	  "description": "to leave; to part from; to be away from; (in giving distances) from; without (sth); independent of; one of the eight trigrams of the Book of Changes representing fire (old) "
+	},
+	{
+	  "text": "两",
+	  "pronunciation": "liǎng",
+	  "description": "two (quantities); both; ounce; some; a few; tael; weight equal to 50 grams "
+	},
+	{
+	  "text": "零",
+	  "pronunciation": "líng",
+	  "description": "zero; nought; zero sign; fractional; fragmentary; odd (of numbers); (placed between two numbers to indicate a smaller quantity followed by a larger one); fraction; (in mathematics) remainder (after division) "
+	},
+	{
+	  "text": "路",
+	  "pronunciation": "lù",
+	  "description": "road; path; way; CL:条[tiao2] "
+	},
+	{
+	  "text": "旅游",
+	  "pronunciation": "lv3 yóu",
+	  "description": "trip; journey; tourism; travel; tour "
+	},
+	{
+	  "text": "卖",
+	  "pronunciation": "mài",
+	  "description": "to sell; to betray; to spare no effort; to show off or flaunt "
+	},
+	{
+	  "text": "慢",
+	  "pronunciation": "màn",
+	  "description": "slow "
+	},
+	{
+	  "text": "忙",
+	  "pronunciation": "máng",
+	  "description": "busy; hurriedly "
+	},
+	{
+	  "text": "每",
+	  "pronunciation": "měi",
+	  "description": "each; every "
+	},
+	{
+	  "text": "妹妹",
+	  "pronunciation": "mèi mei",
+	  "description": "younger sister; fig. younger woman (esp. girl friend or rival); CL:个 "
+	},
+	{
+	  "text": "门",
+	  "pronunciation": "mén",
+	  "description": "gate; doo; gateway; doorway; opening; valve; switch; way to do something; knack; family; house; (religious) sect; school (of thought); class; category; phylum or division (taxonomy); classifier for large guns; classifier for lessons"
+	},
+	{
+	  "text": "面条",
+	  "pronunciation": "miàn tiáo",
+	  "description": "noodles "
+	},
+	{
+	  "text": "男",
+	  "pronunciation": "nán",
+	  "description": "male; Baron"
+	},
+	{
+	  "text": "您",
+	  "pronunciation": "nín",
+	  "description": "you (polite); as opposed to informal you 你[ni3]) "
+	},
+	{
+	  "text": "牛奶",
+	  "pronunciation": "niú nǎi",
+	  "description": "cow's milk; CL:瓶[ping2] "
+	},
+	{
+	  "text": "女",
+	  "pronunciation": "nǚ",
+	  "description": "female; woman; daughter; "
+	},
+	{
+	  "text": "旁边",
+	  "pronunciation": "páng biān",
+	  "description": "lateral; side; to the side; beside "
+	},
+	{
+	  "text": "跑步",
+	  "pronunciation": "pǎo bù",
+	  "description": "to walk quickly; to march; to run "
+	},
+	{
+	  "text": "便宜",
+	  "pronunciation": "pián yi",
+	  "description": "cheap; inexpensive; small advantages; to let sb off lightly "
+	},
+	{
+	  "text": "票",
+	  "pronunciation": "piào",
+	  "description": "ticket; ballot; bank note; person held for ransom; amateur performance of Chinese opera; classifier for shipments and business transactions (topolect); CL:张[Zhang1] "
+	},
+	{
+	  "text": "妻子",
+	  "pronunciation": "qī zi",
+	  "description": "wife; CL:个 "
+	},
+	{
+	  "text": "起床",
+	  "pronunciation": "qǐ chuáng",
+	  "description": "to get up "
+	},
+	{
+	  "text": "千",
+	  "pronunciation": "qiān",
+	  "description": "thousand "
+	},
+	{
+	  "text": "铅笔",
+	  "pronunciation": "qiān bǐ",
+	  "description": "(lead) pencil; CL:支[zhi1] "
+	},
+	{
+	  "text": "晴",
+	  "pronunciation": "qíng",
+	  "description": "clear; fine (weather) "
+	},
+	{
+	  "text": "去年",
+	  "pronunciation": "qù nián",
+	  "description": "last year "
+	},
+	{
+	  "text": "让",
+	  "pronunciation": "ràng",
+	  "description": "to permit; to let sb do sth; to have sb do sthto yield "
+	},
+	{
+	  "text": "日",
+	  "pronunciation": "rì",
+	  "description": "day; day of the month; date; sun; abbr. for 日本 Japan "
+	},
+	{
+	  "text": "上班",
+	  "pronunciation": "shàng bān",
+	  "description": "to go to work; to be on duty; to start work; to go to the office "
+	},
+	{
+	  "text": "身体",
+	  "pronunciation": "shēn tǐ",
+	  "description": "(human) body; health; CL:个 "
+	},
+	{
+	  "text": "生病",
+	  "pronunciation": "shēng bìng",
+	  "description": "to fall ill; to sicken "
+	},
+	{
+	  "text": "生日",
+	  "pronunciation": "shēng rì",
+	  "description": "birthday; CL:个 "
+	},
+	{
+	  "text": "时间",
+	  "pronunciation": "shí jiān",
+	  "description": "time; period; CL:段[duan4] "
+	},
+	{
+	  "text": "事情",
+	  "pronunciation": "shì qing",
+	  "description": "affair; matter; thing; business "
+	},
+	{
+	  "text": "手表",
+	  "pronunciation": "shǒu biǎo",
+	  "description": "wrist watch; CL:块[kuai4] "
+	},
+	{
+	  "text": "手机",
+	  "pronunciation": "shǒu jī",
+	  "description": "cell phone; cellular phone; mobile phone; CL:部[bu4] "
+	},
+	{
+	  "text": "说话",
+	  "pronunciation": "shuō huà",
+	  "description": "to speak; to say; to talk; to gossip; to tell stories; talk; word "
+	},
+	{
+	  "text": "送",
+	  "pronunciation": "sòng",
+	  "description": "to deliver; to carry; to give (as a present); to present (with); to see off; to send "
+	},
+	{
+	  "text": "虽然…但是…",
+	  "pronunciation": "suī rán …dàn shì …",
+	  "description": "although…still…; even if…nevertheless... "
+	},
+	{
+	  "text": "它",
+	  "pronunciation": "tā",
+	  "description": "it (inanimate thing or animal) "
+	},
+	{
+	  "text": "踢足球",
+	  "pronunciation": "tī zú qiú",
+	  "description": "play soccer (football) "
+	},
+	{
+	  "text": "题",
+	  "pronunciation": "tí",
+	  "description": "topic; problem for discussion; exam question; subject; to inscribe; to mention; surname Ti; CL:个"
+	},
+	{
+	  "text": "跳舞",
+	  "pronunciation": "tiào wǔ",
+	  "description": "to dance "
+	},
+	{
+	  "text": "外",
+	  "pronunciation": "wài",
+	  "description": "outside; in addition; foreign; external "
+	},
+	{
+	  "text": "完",
+	  "pronunciation": "wán",
+	  "description": "to finish; to be over; whole; complete; entire "
+	},
+	{
+	  "text": "玩",
+	  "pronunciation": "wán",
+	  "description": "to play; toy; sth used for amusement; curio or antique (Taiwan pr. wan4); to have fun; to trifle with; to keep sth for entertainment "
+	},
+	{
+	  "text": "晚上",
+	  "pronunciation": "wǎn shang",
+	  "description": "in the evening; CL:个 "
+	},
+	{
+	  "text": "往",
+	  "pronunciation": "wǎng",
+	  "description": "to go (in a direction); to; towards; (of a train) bound for; past; previous "
+	},
+	{
+	  "text": "为什么",
+	  "pronunciation": "wèi shén me",
+	  "description": "for what reason?; why? "
+	},
+	{
+	  "text": "问",
+	  "pronunciation": "wèn",
+	  "description": "to ask "
+	},
+	{
+	  "text": "问题",
+	  "pronunciation": "wèn tí",
+	  "description": "question; problem; issue; topic; CL:个 "
+	},
+	{
+	  "text": "希望",
+	  "pronunciation": "xī wàng",
+	  "description": "to wish for; to desire; hope CL:个 "
+	},
+	{
+	  "text": "西瓜",
+	  "pronunciation": "xī guā",
+	  "description": "watermelon; CL:条[tiao2] "
+	},
+	{
+	  "text": "洗",
+	  "pronunciation": "xǐ",
+	  "description": "to wash; to bathe "
+	},
+	{
+	  "text": "小时",
+	  "pronunciation": "xiǎo shí",
+	  "description": "hour; CL:个 "
+	},
+	{
+	  "text": "笑",
+	  "pronunciation": "xiào",
+	  "description": "laugh; smile; CL:个 "
+	},
+	{
+	  "text": "新",
+	  "pronunciation": "xīn",
+	  "description": "new; newly; meso- (chemistry) "
+	},
+	{
+	  "text": "姓",
+	  "pronunciation": "xìng",
+	  "description": "family name; surname; name; CL:个 "
+	},
+	{
+	  "text": "休息",
+	  "pronunciation": "xiū xi",
+	  "description": "rest; to rest "
+	},
+	{
+	  "text": "雪",
+	  "pronunciation": "xuě",
+	  "description": "snow; snowfall; to have the appearance of snow; to wipe away"
+	},
+	{
+	  "text": "颜色",
+	  "pronunciation": "yán sè",
+	  "description": "color; CL:个 "
+	},
+	{
+	  "text": "眼睛",
+	  "pronunciation": "yǎn jing",
+	  "description": "eye; CL:只[zhi1] "
+	},
+	{
+	  "text": "羊肉",
+	  "pronunciation": "yáng ròu",
+	  "description": "mutton "
+	},
+	{
+	  "text": "药",
+	  "pronunciation": "yào",
+	  "description": "medicine; drug; cure; CL:种[zhong3] "
+	},
+	{
+	  "text": "要",
+	  "pronunciation": "yào",
+	  "description": "to want; will; going to (as future auxiliary); important; vital; may; must "
+	},
+	{
+	  "text": "也",
+	  "pronunciation": "yě",
+	  "description": "also; too; (in classical Chinese) final particle serving as copula "
+	},
+	{
+	  "text": "一下",
+	  "pronunciation": "yī xià",
+	  "description": "(used after a verb) give it a go; to do (sth for a bit to give it a try); one time; once; in a while; all of a sudden; all at once; "
+	},
+	{
+	  "text": "已经",
+	  "pronunciation": "yǐ jīng",
+	  "description": "already "
+	},
+	{
+	  "text": "一起",
+	  "pronunciation": "yī qǐ",
+	  "description": "together; in the same place; with; altogether (in total) "
+	},
+	{
+	  "text": "意思",
+	  "pronunciation": "yì si",
+	  "description": "idea; opinion; meaning; wish; desire; CL:个 "
+	},
+	{
+	  "text": "因为…所以…",
+	  "pronunciation": "yīn wèi …suǒ yǐ …",
+	  "description": "because… thus…; on account of…then… "
+	},
+	{
+	  "text": "阴",
+	  "pronunciation": "yīn",
+	  "description": "overcast (weather); cloudy; shady; Yin (the negative principle of Yin and Yang); negative (electric.); feminine; moon; implicit; hidden; genitalia "
+	},
+	{
+	  "text": "游泳",
+	  "pronunciation": "yóu yǒng",
+	  "description": "swim "
+	},
+	{
+	  "text": "右边",
+	  "pronunciation": "yòu bian",
+	  "description": "right side; right"
+	},
+	{
+	  "text": "鱼",
+	  "pronunciation": "yú",
+	  "description": "fish; CL:条[tiao2] "
+	},
+	{
+	  "text": "远",
+	  "pronunciation": "yuǎn",
+	  "description": "far; distant; remote "
+	},
+	{
+	  "text": "运动",
+	  "pronunciation": "yùn dòng",
+	  "description": "movement; campaign; sports; CL:场[chang3] "
+	},
+	{
+	  "text": "再",
+	  "pronunciation": "zài",
+	  "description": "again; once more; re-; second; another; then (after sth"
+	},
+	{
+	  "text": "早上",
+	  "pronunciation": "zǎo shang",
+	  "description": "early morning; Good morning!; CL:个 "
+	},
+	{
+	  "text": "丈夫",
+	  "pronunciation": "zhàng fu",
+	  "description": "husband; CL:个 "
+	},
+	{
+	  "text": "找",
+	  "pronunciation": "zhǎo",
+	  "description": "to try to find; to look for; to call on sb; to find; to seek; to return; to give change "
+	},
+	{
+	  "text": "着",
+	  "pronunciation": "zhe",
+	  "description": "particle attached after verb to indicate action in progress"
+	},
+	{
+	  "text": "真",
+	  "pronunciation": "zhēn",
+	  "description": "really; truly; indeed; real; true; genuine "
+	},
+	{
+	  "text": "正在",
+	  "pronunciation": "zhèng zài",
+	  "description": "in the process of (doing something or happening); while (doing) "
+	},
+	{
+	  "text": "知道",
+	  "pronunciation": "zhī dào",
+	  "description": "to know; to be aware of "
+	},
+	{
+	  "text": "准备",
+	  "pronunciation": "zhǔn bèi",
+	  "description": "preparation; prepare "
+	},
+	{
+	  "text": "走",
+	  "pronunciation": "zǒu",
+	  "description": "to walk; to go; to run; to move (of vehicle); to visit; to leave; to go away; to die (euph.); from; through; away (in compound verbs"
+	},
+	{
+	  "text": "最",
+	  "pronunciation": "zuì",
+	  "description": "most; the most; -est "
+	},
+	{
+	  "text": "左边",
+	  "pronunciation": "zuǒ bian",
+	  "description": "left; the left side; to the left of "
+	}
+   ]
