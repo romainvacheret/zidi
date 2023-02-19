@@ -1,12 +1,19 @@
-import { ForceGraph2D } from "react-force-graph";
+import { ForceGraph2D, } from "react-force-graph";
+// ForceGraphMethods is only avaialble in react-force-graph-2d??
+// TODO delete the full dependency and only use th 2D one
+import { ForceGraphMethods } from "react-force-graph-2d";
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 import  hsk1 from "./hsk1.json";
 import  hsk2 from "./hsk2.json";
 import  hsk3 from "./hsk3.json";
-import { Graph, Vertice, Edge, VocabularyElement } from "./types";
+import { Graph } from "./types";
+import { toGraph } from "./graph";
+import CustomSideBar from "./components/sidebar";
+import { ProSidebarProvider } from "react-pro-sidebar";
 
+// ForceGraph2D.propTypes?.ref?.prototype
 // const toGraph = (someSentences: Array<VocabularyElement>): Graph => {
 // 	const set = new Set();
 // 	const length = someSentences.length;
@@ -37,40 +44,6 @@ import { Graph, Vertice, Edge, VocabularyElement } from "./types";
 //     const vertices = graph.nodes.map
 // }
 //
-const getEdgeId = (source: string, target: string): string => `${source}-${target}`;
-
-
-const toGraph = (vocabulary: Array<VocabularyElement>, graph?: Graph): Graph => {
-    const texts = vocabulary.map(vocab => vocab.text);
-    const vertices: Array<Vertice> = graph === undefined ? new Array() : graph.nodes;
-    const edges: Array<Edge> = graph === undefined ? new Array() : graph.links;
-    const verticesSet: Set<string> = new Set(vertices.map(v => v.id));
-    const edgesSet: Set<string> = new Set(edges.map(e=> getEdgeId(e.source, e.target)));
-
-    texts.map(text => {
-        if(!verticesSet.has(text)) {
-            verticesSet.add(text);
-            vertices.push({id: text});
-        }
-        Array.from(text).forEach(char => {
-            const edgeId: string = getEdgeId(text, char);
-
-            if(!verticesSet.has(char)) {
-                verticesSet.add(char);
-                vertices.push({id: char});
-            }
-
-            // Do not create an edge between a single character word and itself
-            if(text.length !== 1 && !edgesSet.has(edgeId))  {
-                edgesSet.add(edgeId);
-                edges.push({source: text, target: char});
-            }
-
-        });
-    });
-
-    return graph === undefined ? {nodes: vertices, links: edges} : graph;
-}
 
 // const data = toGraph(hsk1);
 // const data2 = toGraph(hsk2);
@@ -90,6 +63,7 @@ const toGraph = (vocabulary: Array<VocabularyElement>, graph?: Graph): Graph => 
 
 function App() {
   const [data, setData] = React.useState<Graph | undefined>(undefined);
+  const forceGraphRef = React.useRef<ForceGraphMethods | undefined>(undefined);
   
 React.useEffect(() => {
 const data = toGraph(hsk1);
@@ -109,38 +83,40 @@ console.log(data.links.filter(x => x === undefined).length)
 
 // TODO: why is there some undefined?
 // Is there still some undefined values?
-data.nodes = data.nodes.filter(x => x !== undefined);
-data.links = data.links.filter(x => x !== undefined);
+// data.nodes = data.nodes.filter(x => x !== undefined);
+// data.links = data.links.filter(x => x !== undefined);
 setData(data);
+
+// TODO: stop the graph at the limit of the sidebar (at the moment is underneath)
+
+
 }, [])
+    forceGraphRef.current?.centerAt(100, 100);
+console.log('laaa', forceGraphRef);
+const centerAt =(x: number | undefined, y: number | undefined) => { forceGraphRef.current?.centerAt(x, y) } ;
   return (
+  <ProSidebarProvider>
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        <button onClick={ () => forceGraphRef.current?.centerAt(100, 100) }> HERE </button>
+        <CustomSideBar graph={data} ref={forceGraphRef} centerAt={ centerAt } />
+        <main>
+            <ForceGraph2D
+              graphData={ data }
+              ref={ forceGraphRef }
+              nodeCanvasObject={ ({ id, x, y}, ctx) => {
+                ctx.font = '10px Sans-Serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(id?.toString() || '', x || 0, y || 0);
+                // if(node.id && node.x && node.y) {
+                //   ctx.fillText(node.id.toString(), node.x, node.y)
+                // } else {
+                //   console.log(node);
+                // }
 
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-        <ForceGraph2D
-          graphData={ data }
-          nodeCanvasObject={ ({ id, x, y}, ctx) => {
-            ctx.font = '10px Sans-Serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(id?.toString() || '', x || 0, y || 0);
-            // if(node.id && node.x && node.y) {
-            //   ctx.fillText(node.id.toString(), node.x, node.y)
-            // } else {
-            //   console.log(node);
-            // }
+              }}
 
-          }}
-
-        />
+            /> 
+        </main>
     </div>
+    </ProSidebarProvider>
   );
 }
 
