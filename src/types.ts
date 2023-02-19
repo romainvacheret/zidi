@@ -1,20 +1,21 @@
-export interface Node {
+export interface Vertice {
 	id: string
 	index?: number
 }
 
-export interface Link {
+export interface Edge {
 	source: string
 	target: string
 }
 
-export interface Data {
-	nodes: Array<Node>
-	links: Array<Link>
+export interface Graph {
+	nodes: Array<Vertice>
+	links: Array<Edge>
 }
 
-export interface Sentence {
+export interface VocabularyElement {
 	text: string,
 	pronunciation: string,
 	description: string
 }
+
