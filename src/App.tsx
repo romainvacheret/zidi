@@ -36,15 +36,16 @@ import { Graph, Vertice, Edge, VocabularyElement } from "./types";
 // const graphToMaps = (graph:Graph): [Map<string, Vertice>, Map<string, Edge>] => {
 //     const vertices = graph.nodes.map
 // }
+//
+const getEdgeId = (source: string, target: string): string => `${source}-${target}`;
 
 
-const toGraph = (vocabulary: Array<VocabularyElement>): Graph => {
+const toGraph = (vocabulary: Array<VocabularyElement>, graph?: Graph): Graph => {
     const texts = vocabulary.map(vocab => vocab.text);
-    const vertices: Array<Vertice> = new Array();
-    const edges: Array<Edge> = new Array();
-    const verticesSet: Set<string> = new Set();
-    const edgesSet: Set<string> = new Set();
-
+    const vertices: Array<Vertice> = graph === undefined ? new Array() : graph.nodes;
+    const edges: Array<Edge> = graph === undefined ? new Array() : graph.links;
+    const verticesSet: Set<string> = new Set(vertices.map(v => v.id));
+    const edgesSet: Set<string> = new Set(edges.map(e=> getEdgeId(e.source, e.target)));
 
     texts.map(text => {
         if(!verticesSet.has(text)) {
@@ -52,7 +53,7 @@ const toGraph = (vocabulary: Array<VocabularyElement>): Graph => {
             vertices.push({id: text});
         }
         Array.from(text).forEach(char => {
-            const edgeId: string = `${char}-${text}`;
+            const edgeId: string = getEdgeId(text, char);
 
             if(!verticesSet.has(char)) {
                 verticesSet.add(char);
@@ -68,7 +69,7 @@ const toGraph = (vocabulary: Array<VocabularyElement>): Graph => {
         });
     });
 
-    return {nodes: vertices, links: edges};
+    return graph === undefined ? {nodes: vertices, links: edges} : graph;
 }
 
 // const data = toGraph(hsk1);
@@ -92,8 +93,8 @@ function App() {
   
 React.useEffect(() => {
 const data = toGraph(hsk1);
-const data2 = toGraph(hsk2);
-const data3 = toGraph(hsk3);
+toGraph(hsk2, data);
+toGraph(hsk3, data);
 
 // TODO delete duplicates
 // data.links = [...data.links, ...data2.links];
