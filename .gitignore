@@ -1,0 +1,4 @@
+*.pyc
+dictionary.sqlite3
+venv/
+.venv/
