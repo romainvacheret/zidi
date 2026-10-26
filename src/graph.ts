@@ -4,8 +4,8 @@ const _getEdgeId = (source: string, target: string): string => `${source}-${targ
 
 export const toGraph = (vocabulary: Array<VocabularyElement>, graph?: Graph): Graph => {
     const texts = vocabulary.map(vocab => vocab.text);
-    const vertices: Array<Vertice> = graph === undefined ? new Array() : graph.nodes;
-    const edges: Array<Edge> = graph === undefined ? new Array() : graph.links;
+    const vertices: Array<Vertice> = graph === undefined ? [] : graph.nodes;
+    const edges: Array<Edge> = graph === undefined ? [] : graph.links;
     const verticesSet: Set<string> = new Set(vertices.map(v => v.id));
     const edgesSet: Set<string> = new Set(edges.map(e=> _getEdgeId(e.source, e.target)));
 

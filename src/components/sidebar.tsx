@@ -8,7 +8,7 @@ interface SidebarProps {
 }
 
 const CustomSideBar: React.FC<SidebarProps> = ({ graph, centerAt }) => {
-    const result: Array<JSX.Element>= graph !== undefined ? 
+    const result: Array<React.JSX.Element>= graph !== undefined ? 
         graph.nodes.map(node => 
             <MenuItem
             onClick={() => centerAt(node.x, node.y)}>

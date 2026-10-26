@@ -1,7 +1,4 @@
-import { ForceGraph2D, } from "react-force-graph";
-// ForceGraphMethods is only avaialble in react-force-graph-2d??
-// TODO delete the full dependency and only use th 2D one
-import { ForceGraphMethods } from "react-force-graph-2d";
+import ForceGraph2D, { type ForceGraphMethods } from "react-force-graph-2d";
 import React from 'react';
 import './App.css';
 import  hsk1 from "./hsk1.json";
