@@ -53,7 +53,7 @@ export default function DictionaryView({ active = true }: { active?: boolean }) 
       <header>
         <span className="eyebrow">Your language workspace</span>
         <h1>Dictionary</h1>
-        <p>Discover a character. Understand how it fits.</p>
+        <p>Discover words and characters. Understand how they fit.</p>
       </header>
       <div className={`dictionary-workspace${selectedCharacter ? ' with-preview' : ''}`}>
       <div className="dictionary-browser">
@@ -64,16 +64,16 @@ export default function DictionaryView({ active = true }: { active?: boolean }) 
             resetResults();
             setMode(event.target.value as SearchMode);
           }}>
-            <option value="character">Character / Pinyin</option>
+            <option value="character">Chinese / Pinyin</option>
             <option value="translation">English translation</option>
           </select>
         </label>
         <label className="dictionary-query">
-          {mode === 'translation' ? 'English meaning' : 'Character or pinyin'}
+          {mode === 'translation' ? 'English meaning' : 'Chinese or pinyin'}
           <input value={query} maxLength={200} onChange={event => {
             resetResults();
             setQuery(event.target.value);
-          }} placeholder={mode === 'translation' ? 'e.g. law' : 'e.g. 世, shì, shi4, or shi'} />
+          }} placeholder={mode === 'translation' ? 'e.g. law or world' : 'e.g. 世界, shì jiè, shi4jie4, or shijie'} />
         </label>
         <button type="submit" disabled={!query.trim() || loading}>Search</button>
       </form>
@@ -82,10 +82,10 @@ export default function DictionaryView({ active = true }: { active?: boolean }) 
         {!loading && !error && response === null && <div className="dictionary-empty">
           <span className="empty-character" lang="zh" aria-hidden="true">字</span>
           <h2>A character is a place to start.</h2>
-          <p>Search by character, pinyin, or English meaning. Select a result to explore its story.</p>
+          <p>Search by Chinese characters, a word’s pinyin, or English meaning. Select a result to explore its entry.</p>
         </div>}
         {response && <p>{response.results.length === 0
-          ? (mode === 'translation' ? 'No matching translations.' : 'No matching characters.')
+          ? (mode === 'translation' ? 'No matching translations.' : 'No matching entries.')
           : `${response.results.length} result${response.results.length === 1 ? '' : 's'} · Most common first`}
           {response.results.length === response.limit && ' · Result limit reached. Refine your search for more specific matches.'}
         </p>}
@@ -104,15 +104,18 @@ export default function DictionaryView({ active = true }: { active?: boolean }) 
             <span className="dictionary-character" lang="zh">{entry.character}</span>
             <span className="dictionary-pinyin" lang="zh-Latn">{entry.pinyin}</span>
             {entry.gloss && <p>{entry.gloss}</p>}
-            <span className="card-detail-hint">Explore character <span aria-hidden="true">→</span></span>
+            <span className="card-detail-hint">Explore {Array.from(entry.character).length > 1 ? 'word' : 'character'} <span aria-hidden="true">→</span></span>
             </button>
           </li>
         ))}
       </ul>
       </div>
-      {active && selectedCharacter && !fullCharacter && <CharacterDetails key={selectedCharacter}
-        character={selectedCharacter} returnFocusTo={selectedCard.current}
-        onClose={() => setSelectedCharacter(null)} />}
+      {active && selectedCharacter && !fullCharacter && (Array.from(selectedCharacter).length > 1
+        ? <WordDetails key={selectedCharacter} word={selectedCharacter} full={false} returnFocusTo={selectedCard.current}
+          onClose={() => setSelectedCharacter(null)} />
+        : <CharacterDetails key={selectedCharacter}
+          character={selectedCharacter} returnFocusTo={selectedCard.current}
+          onClose={() => setSelectedCharacter(null)} />)}
       </div>
       </div>
       {fullCharacter && (Array.from(fullCharacter).length > 1

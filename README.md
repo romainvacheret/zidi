@@ -25,7 +25,9 @@ python3 -m venv .venv
 On Windows, use `.venv\Scripts\python` instead of `.venv/bin/python`.
 The first backend startup builds `backend/dictionary.sqlite3` from the bundled JSONL resources; wait for startup to finish before searching. Later starts reuse it. Set `ZIDI_DB_PATH` to use another database location. Resource paths are resolved from the backend directory, independently of the working directory.
 
-Vite proxies `/api` requests to FastAPI on port 8000. Open the Vite URL for development. The graph works independently of the backend. The Dictionary tab supports the previous GUI's character, pinyin (with or without tones), and English translation searches; results show characters, pinyin, and available definitions. Translation matches in word entries also return their constituent characters, preserving the original dictionary behavior. Results put common characters first using the source’s `statistics.movieCharRank`, falling back to `bookCharRank`; characters without a usage rank come last, with character order breaking ties. Ranking applies before the 50-result limit in both search modes. Refine the query when the limit is reached. Existing databases receive the usage ranks automatically on backend startup.
+Vite proxies `/api` requests to FastAPI on port 8000. Open the Vite URL for development. The Dictionary tab searches both characters and complete words by simplified/traditional Chinese, pinyin, or English. Pinyin accepts spaces, tone numbers and tone marks: for example `照顾`, `zhaogu`, `zhao gu`, `zhao4gu`, or `zhào gu`. Numbered and marked searches preserve tone distinctions; tone-free searches match all tones.
+
+Results include a word’s pinyin and definitions, alongside character matches where applicable. Translation searches include matching words and retain constituent-character matches. Usage ordering uses subtitle ranks, falling back to book ranks: `movieCharRank`/`bookCharRank` for characters and `movieWordRank`/`bookWordRank` for words. Unranked entries come last; ordering and deduplication happen before the 50-entry limit. Existing databases upgrade automatically on backend startup without rebuilding dictionary records.
 
 ## Checks and production build
 
@@ -59,7 +61,7 @@ Click a graph node or select it in the sidebar to see a small, clickable preview
 
 **View in graph** on an entry opens the Graph tab centered on that character or word. Graph targets use bookmarkable URLs such as `/#/graph/%E4%B8%96`. Dictionary characters outside the bundled HSK graph appear as standalone nodes for the current session; existing vocabulary relationships stay intact.
 
-Word entries currently use bundled HSK readings and meanings and link to their constituent character pages. Character nodes without HSK metadata load their preview from the dictionary API. Word previews and the graph remain usable when the backend is offline.
+Word entries use the full dictionary, including traditional forms, definitions, usage ranks and constituent-character links. Bundled HSK readings and meanings remain available as an offline fallback. Nodes without HSK metadata load their previews from the dictionary API. Words outside HSK are linked to their constituent characters when opened in the graph.
 
 ## Project documentation
 

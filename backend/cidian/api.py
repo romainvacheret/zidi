@@ -5,14 +5,15 @@ import logging
 import os
 from pathlib import Path
 import tempfile
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Path as PathParameter, Query
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .db import DictionaryBuilder
-from .db.dictionary_database import ensure_character_details, ensure_usage_ranks
-from .dictionary import SearchMode, character_details, search_dictionary
+from .db.dictionary_database import ensure_character_details, ensure_usage_ranks, ensure_word_search
+from .dictionary import SearchMode, character_details, search_dictionary, word_details
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,6 +23,7 @@ class DictionaryEntry(BaseModel):
     pinyin: str
     gloss: str | None
     codepoint: str | None
+    kind: Literal["character", "word"] = "character"
 
 
 class SearchResponse(BaseModel):
@@ -55,6 +57,18 @@ class CharacterDetails(DictionaryEntry):
     sources: list[str]
 
 
+class WordDetails(DictionaryEntry):
+    kind: Literal["character", "word"] = "word"
+    traditional: str | None
+    readings: list[str]
+    definitions: list[str]
+    hsk_level: int | None
+    movie_rank: int | None
+    book_rank: int | None
+    characters: list[str]
+    sources: list[str]
+
+
 def create_app(db_file: Path | None = None, *, resources: Path | None = None,
                frontend: Path | None = None) -> FastAPI:
     database = Path(db_file or os.environ.get("ZIDI_DB_PATH", BACKEND_ROOT / "dictionary.sqlite3"))
@@ -77,6 +91,7 @@ def create_app(db_file: Path | None = None, *, resources: Path | None = None,
                 pending.replace(database)
         ensure_usage_ranks(database, resources / "dictionary_char_2025-12-27.jsonl")
         ensure_character_details(database, resources / "dictionary_char_2025-12-27.jsonl")
+        ensure_word_search(database, resources / "dictionary_word_2025-12-27.jsonl")
         yield
 
     app = FastAPI(title="Zidi dictionary", lifespan=lifespan)
@@ -92,6 +107,13 @@ def create_app(db_file: Path | None = None, *, resources: Path | None = None,
         result = character_details(database, character)
         if result is None:
             raise HTTPException(status_code=404, detail="Character not found")
+        return result
+
+    @app.get("/api/dictionary/words/{word}", response_model=WordDetails)
+    def word_entry(word: str = PathParameter(min_length=2, max_length=200)):
+        result = word_details(database, word)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Word not found")
         return result
 
     frontend = frontend if frontend is not None else BACKEND_ROOT.parent / "dist"

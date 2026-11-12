@@ -51,7 +51,7 @@ _PINYIN_TONE_MAP = {
     "ǜ": ("v", "4"),
 }
 
-_SEARCH_SEPARATORS = {" ", "\t", "\n", "\r", "-", "_", "'", "’", "·", "."}
+_SEARCH_SEPARATORS = {" ", "\t", "\n", "\r", "-", "_", "'", "’", "·", ".", "\u200b", "\u200c", "\u200d"}
 _TRANSLATION_FIELDS = {"gloss", "originalMeaning", "hint"}
 _TRANSLATION_SPLIT_RE = re.compile(r"[^0-9a-z]+")
 
@@ -197,6 +197,80 @@ def character_usage_rank(record: dict) -> int | None:
     return None
 
 
+def word_usage_rank(record: dict) -> int | None:
+    statistics = record.get("statistics") or {}
+    for key in ("movieWordRank", "bookWordRank"):
+        rank = statistics.get(key)
+        if isinstance(rank, int) and not isinstance(rank, bool) and rank > 0:
+            return rank
+    return None
+
+
+def word_query_key(text: str) -> str:
+    # Keep tone marks and numbers; remove only separators. An unsegmented
+    # marked phrase such as shìjiè must not become the incorrect shijie4.
+    if not contains_tone_marks(text):
+        return normalize_pinyin_term(text, keep_digits=True)
+    return "".join(c for c in unicodedata.normalize("NFC", text.lower().strip())
+                   if c not in _SEARCH_SEPARATORS)
+
+
+def word_lookup_terms(record: dict) -> list[str]:
+    phrases = list(iter_keyed_strings(record, {"pinyin"}))
+    alternatives = [token for text in iter_keyed_strings(record, {"pinyinSearchString"})
+                    for token in text.split()]
+    full_keys = {normalize_pinyin_term(p, keep_digits=False) for p in phrases}
+    if not full_keys and alternatives:
+        longest = max(len(normalize_pinyin_term(p, keep_digits=False)) for p in alternatives)
+        full_keys = {normalize_pinyin_term(p, keep_digits=False) for p in alternatives
+                     if len(normalize_pinyin_term(p, keep_digits=False)) == longest}
+    terms = []
+    for phrase in phrases:
+        terms.extend([word_query_key(phrase), normalize_pinyin_term(phrase, keep_digits=False)])
+        chunks = [chunk for chunk in _PINYIN_SPLIT_RE.split(phrase) if chunk]
+        if len(chunks) > 1 or len(phrase) == 1 or not contains_tone_marks(phrase):
+            terms.append("".join(pinyin_syllable_to_numbered(chunk) for chunk in chunks))
+        elif len(record.get("simp", "")) == 1:
+            terms.append(pinyin_syllable_to_numbered(phrase))
+    for token in alternatives:
+        if normalize_pinyin_term(token, keep_digits=False) in full_keys:
+            terms.append(word_query_key(token))
+    return unique_terms(terms)
+
+
+def ensure_word_search(db_file: Path, word_file: Path) -> None:
+    """Backfill full-word lookup keys, source records and usage atomically."""
+    conn = sqlite3.connect(db_file)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        if "source_json" in {row[1] for row in conn.execute("PRAGMA table_info(words)")}:
+            return
+        conn.execute("ALTER TABLE words ADD COLUMN source_json TEXT")
+        conn.execute("ALTER TABLE words ADD COLUMN usage_rank INTEGER")
+        conn.execute("CREATE TABLE word_lookup_terms (word_id INTEGER NOT NULL REFERENCES words(id), "
+                     "term TEXT NOT NULL, PRIMARY KEY (word_id, term))")
+        conn.execute("CREATE INDEX idx_word_lookup_terms ON word_lookup_terms(term)")
+        ids = dict(conn.execute("SELECT source_id, id FROM words WHERE source_id IS NOT NULL"))
+        labels = {}
+        for word_id, simp, trad in conn.execute("SELECT id, simp, trad FROM words"):
+            labels.setdefault((simp, trad), []).append(word_id)
+        with word_file.open(encoding="utf-8") as source:
+            for line in source:
+                if not line.strip():
+                    continue
+                record = json.loads(line)
+                source_id = record.get("_id")
+                matches = [ids[source_id]] if source_id in ids else labels.get((record.get("simp", ""), record.get("trad")), [])
+                for word_id in matches:
+                    conn.execute("UPDATE words SET source_json = ?, usage_rank = ? WHERE id = ?",
+                                 (json.dumps(record, ensure_ascii=False), word_usage_rank(record), word_id))
+                    conn.executemany("INSERT OR IGNORE INTO word_lookup_terms VALUES (?, ?)",
+                                     ((word_id, term) for term in word_lookup_terms(record)))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def ensure_usage_ranks(db_file: Path, char_file: Path) -> None:
     """Backfill older databases atomically without rebuilding dictionary tables."""
     conn = sqlite3.connect(db_file)
@@ -276,6 +350,7 @@ class DictionaryBuilder:
             DROP TABLE IF EXISTS character_translation_terms;
             DROP TABLE IF EXISTS word_search_terms;
             DROP TABLE IF EXISTS word_translation_terms;
+            DROP TABLE IF EXISTS word_lookup_terms;
             DROP TABLE IF EXISTS characters;
             DROP TABLE IF EXISTS words;
 
@@ -314,7 +389,9 @@ class DictionaryBuilder:
                 simp TEXT NOT NULL,
                 trad TEXT,
                 gloss TEXT,
-                pinyin_text TEXT NOT NULL DEFAULT ''
+                pinyin_text TEXT NOT NULL DEFAULT '',
+                source_json TEXT,
+                usage_rank INTEGER
             );
 
             CREATE TABLE word_search_terms (
@@ -325,6 +402,12 @@ class DictionaryBuilder:
 
             CREATE INDEX idx_words_simp ON words(simp);
             CREATE INDEX idx_words_trad ON words(trad);
+            CREATE TABLE word_lookup_terms (
+                word_id INTEGER NOT NULL REFERENCES words(id) ON DELETE CASCADE,
+                term TEXT NOT NULL,
+                PRIMARY KEY (word_id, term)
+            );
+            CREATE INDEX idx_word_lookup_terms ON word_lookup_terms(term);
             CREATE INDEX idx_word_terms_term ON word_search_terms(term);
 
             CREATE TABLE word_translation_terms (
@@ -386,8 +469,8 @@ class DictionaryBuilder:
         pinyin_text = self._collect_raw_pinyin_text(record)
         cursor = conn.execute(
             """
-            INSERT INTO words (source_id, simp, trad, gloss, pinyin_text)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO words (source_id, simp, trad, gloss, pinyin_text, source_json, usage_rank)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 record.get("_id"),
@@ -395,9 +478,13 @@ class DictionaryBuilder:
                 record.get("trad"),
                 record.get("gloss"),
                 pinyin_text,
+                json.dumps(record, ensure_ascii=False),
+                word_usage_rank(record),
             ),
         )
         word_id = cursor.lastrowid
+        conn.executemany("INSERT OR IGNORE INTO word_lookup_terms VALUES (?, ?)",
+                         ((word_id, term) for term in word_lookup_terms(record)))
         conn.executemany(
             "INSERT OR IGNORE INTO word_search_terms (word_id, term) VALUES (?, ?)",
             ((word_id, term) for term in self._build_word_terms(record)),
@@ -477,6 +564,41 @@ class DictionaryRepository:
         record = json.loads(row[0] or "{}")
         return {**record, "char": row[1], "gloss": row[2], "pinyin_text": row[3],
                 "codepoint": row[4], "strokeCount": row[5]}
+
+    def search_words(self, query: str, limit: int = 50, *, translation: bool = False) -> list[dict]:
+        if not query.strip():
+            return []
+        if translation:
+            terms = self._candidate_translation_terms(query)
+            if not terms:
+                return []
+            placeholders = ",".join("?" for _ in terms)
+            where = f"w.id IN (SELECT word_id FROM word_translation_terms WHERE term IN ({placeholders}))"
+            params = terms
+        else:
+            where = "(w.simp = ? OR w.trad = ? OR w.id IN (SELECT word_id FROM word_lookup_terms WHERE term = ?))"
+            params = [query.strip(), query.strip(), word_query_key(query)]
+        rows = self.conn.execute(
+            f"SELECT w.source_json, w.simp, w.trad, w.gloss, w.pinyin_text, w.usage_rank "
+            f"FROM words w WHERE length(w.simp) > 1 AND {where} "
+            "ORDER BY w.usage_rank IS NULL, w.usage_rank, w.simp, w.id LIMIT ?", (*params, limit),
+        ).fetchall()
+        return [{**json.loads(row[0] or "{}"), "simp": row[1], "trad": row[2], "gloss": row[3],
+                 "pinyin_text": row[4], "usage_rank": row[5]} for row in rows]
+
+    def get_word(self, word: str) -> dict | None:
+        rows = self.conn.execute(
+            "SELECT source_json, simp, trad, gloss, pinyin_text FROM words WHERE simp = ? OR trad = ? "
+            "ORDER BY usage_rank IS NULL, usage_rank, id LIMIT 1", (word, word),
+        ).fetchone()
+        return ({**json.loads(rows[0] or "{}"), "simp": rows[1], "trad": rows[2],
+                 "gloss": rows[3], "pinyin_text": rows[4]} if rows else None)
+
+    def character_usage_ranks(self, characters: list[str]) -> dict[str, int | None]:
+        if not characters:
+            return {}
+        placeholders = ",".join("?" for _ in characters)
+        return dict(self.conn.execute(f"SELECT char, usage_rank FROM characters WHERE char IN ({placeholders})", characters))
 
     def search_characters(self, query: str, limit: int = 50) -> list[tuple[str, str | None, str, str | None]]:
         """Search by exact character or by pinyin."""

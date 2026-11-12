@@ -162,13 +162,13 @@ test('switches feature tabs with mouse and keyboard while retaining graph select
   await user.click(screen.getByRole('tab', { name: 'Dictionary' }));
   expect(screen.getByRole('heading', { name: 'Dictionary' })).toBeVisible();
   expect(screen.queryByRole('button', { name: 'Fit graph' })).not.toBeInTheDocument();
-  await user.type(screen.getByLabelText('Character or pinyin'), 'shi');
+  await user.type(screen.getByLabelText('Chinese or pinyin'), 'shi');
   screen.getByRole('tab', { name: 'Dictionary' }).focus();
   await user.keyboard('{ArrowRight}');
   expect(screen.getByRole('tab', { name: 'Graph' })).toHaveFocus();
   expect(screen.getByRole('button', { name: '爱' })).toHaveAttribute('aria-pressed', 'true');
   await user.click(screen.getByRole('tab', { name: 'Dictionary' }));
-  expect(screen.getByLabelText('Character or pinyin')).toHaveValue('shi');
+  expect(screen.getByLabelText('Chinese or pinyin')).toHaveValue('shi');
 });
 
 test('shows a clickable word tooltip, opens its entry, and returns to the centered graph', async () => {
@@ -234,4 +234,18 @@ test('centers an external dictionary character after coordinates initialize with
   act(() => rendererProps().onEngineTick?.());
   expect(centerAt).toHaveBeenCalledExactlyOnceWith(0, 42, 300);
   await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/dictionary/characters/%F0%A0%AE%B7', expect.anything()));
+});
+
+test('adds a dictionary word outside HSK with its constituent links', async () => {
+  window.history.replaceState(null, '', '/#/graph/%E6%95%B0%E6%8D%AE%E5%BA%93');
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({
+    character: '数据库', readings: ['shù jù kù'], pinyin: 'shù jù kù', gloss: 'database',
+  }) }));
+  render(<App />);
+  await screen.findByLabelText('Character graph');
+  expect(screen.getByRole('button', { name: '数据库' })).toHaveAttribute('aria-pressed', 'true');
+  expect(rendererProps().graphData?.links).toEqual(expect.arrayContaining([
+    expect.objectContaining({ target: '数' }), expect.objectContaining({ target: '据' }), expect.objectContaining({ target: '库' }),
+  ]));
+  expect(await screen.findByText('shù jù kù')).toBeInTheDocument();
 });

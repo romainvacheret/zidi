@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { characterHref, getCharacterDetails } from '../dictionary';
+import { characterHref, getCharacterDetails, getWordDetails } from '../dictionary';
 import type { GraphNode } from '../types';
 
 export default function GraphNodePreview({ node }: { node: GraphNode }) {
@@ -10,7 +10,8 @@ export default function GraphNodePreview({ node }: { node: GraphNode }) {
   useEffect(() => {
     if (hasVocabulary) return;
     const controller = new AbortController();
-    getCharacterDetails(node.id, controller.signal).then(data => {
+    const lookup = Array.from(node.id).length > 1 ? getWordDetails : getCharacterDetails;
+    lookup(node.id, controller.signal).then(data => {
       if (!controller.signal.aborted) setLookup({ pinyin: data.readings.join(' · ') || data.pinyin, gloss: data.gloss });
     }).catch(() => {
       if (!controller.signal.aborted) setUnavailable(true);

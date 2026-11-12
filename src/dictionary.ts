@@ -5,6 +5,7 @@ export interface DictionaryEntry {
   pinyin: string;
   gloss: string | null;
   codepoint: string | null;
+  kind?: 'character' | 'word';
 }
 
 export interface SearchResponse {
@@ -24,6 +25,24 @@ export interface CharacterDetails extends DictionaryEntry {
   words: { word: string; traditional: string | null; gloss: string | null }[];
   variants: string[];
   sources: string[];
+}
+
+export interface WordDetailsData extends DictionaryEntry {
+  traditional: string | null;
+  readings: string[];
+  definitions: string[];
+  hsk_level: number | null;
+  movie_rank: number | null;
+  book_rank: number | null;
+  characters: string[];
+  sources: string[];
+}
+
+export async function getWordDetails(word: string, signal: AbortSignal): Promise<WordDetailsData> {
+  const response = await fetch(`/api/dictionary/words/${encodeURIComponent(word)}`, { signal });
+  if (response.status === 404) throw new Error('This word is not in the dictionary.');
+  if (!response.ok) throw new Error('Could not load word details. Please try again.');
+  return response.json();
 }
 
 export function characterHref(character: string) {

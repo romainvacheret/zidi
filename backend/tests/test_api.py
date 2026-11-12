@@ -39,7 +39,7 @@ class DictionaryApiTest(unittest.TestCase):
             self.assertTrue(self.db.exists())
             cases = [("世", "character", ["世"]), ("shi", "character", ["世", "尸"]),
                      ("shi4", "character", ["世"]), ("shì", "character", ["世"]),
-                     ("law", "translation", ["律"]), ("world", "translation", ["世"])]
+                     ("law", "translation", ["律"]), ("world", "translation", ["世", "世界"])]
             for query, mode, expected in cases:
                 with self.subTest(query=query):
                     response = client.get("/api/dictionary/search", params={"q": query, "mode": mode})

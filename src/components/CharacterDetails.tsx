@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { characterHref, getCharacterDetails, type CharacterDetails as Details } from '../dictionary';
 import { graphHref } from '../navigation';
+import EntryPanel from './EntryPanel';
 
 interface Props {
   character: string;
@@ -75,7 +76,6 @@ export default function CharacterDetails({ character, full = false, onClose, ret
   const [data, setData] = useState<Details | null>(null);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
-  const dialog = useRef<HTMLDialogElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -91,26 +91,8 @@ export default function CharacterDetails({ character, full = false, onClose, ret
   }, [character, attempt]);
 
   useEffect(() => {
-    if (full) {
-      title.current?.focus();
-      return;
-    }
-    const element = dialog.current!;
-    const opener = returnFocusTo || document.activeElement as HTMLElement | null;
-    const media = window.matchMedia('(max-width: 760px)');
-    function show() {
-      if (element.open) element.close();
-      if (media.matches) element.showModal();
-      else element.show();
-    }
-    show();
-    media.addEventListener('change', show);
-    return () => {
-      media.removeEventListener('change', show);
-      element.close();
-      if (opener?.isConnected && !opener.closest('[hidden]')) opener.focus({ preventScroll: true });
-    };
-  }, [full, returnFocusTo]);
+    if (full) title.current?.focus();
+  }, [full]);
 
   const Heading = full ? 'h1' : 'h2';
   const content = <>
@@ -135,9 +117,7 @@ export default function CharacterDetails({ character, full = false, onClose, ret
     <a className="back-link" href="#/dictionary">← Back to results</a>
     {content}
   </article>;
-  return <dialog ref={dialog} className="character-panel" aria-labelledby="character-detail-title"
-    onCancel={event => { event.preventDefault(); onClose(); }}
-    onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); onClose(); } }}>
+  return <EntryPanel labelledBy="character-detail-title" onClose={onClose} returnFocusTo={returnFocusTo}>
     {content}
-  </dialog>;
+  </EntryPanel>;
 }

@@ -3,6 +3,7 @@ import './App.css';
 import { vocabularyGraph, vocabularyNodes } from './vocabulary';
 import { graphTargetFromHash } from './navigation';
 import type { GraphNode } from './types';
+import { toGraph } from './graph';
 import CustomSideBar from './components/sidebar';
 import GraphView from './components/GraphView';
 import DictionaryView from './components/DictionaryView';
@@ -16,9 +17,15 @@ function App() {
   });
   const [additionalNodes, setAdditionalNodes] = useState<GraphNode[]>(() =>
     selection && !vocabularyNodes.has(selection.id) ? [{ id: selection.id, entries: [] }] : []);
-  const graph = useMemo(() => additionalNodes.length
-    ? { nodes: [...vocabularyGraph.nodes, ...additionalNodes], links: vocabularyGraph.links }
-    : vocabularyGraph, [additionalNodes]);
+  const graph = useMemo(() => {
+    if (!additionalNodes.length) return vocabularyGraph;
+    const extra = toGraph(additionalNodes.map(node => ({ text: node.id, pronunciation: '', description: '' })));
+    return {
+      nodes: [...vocabularyGraph.nodes, ...extra.nodes.filter(node => !vocabularyNodes.has(node.id))
+        .map(node => ({ id: node.id, entries: [] }))],
+      links: [...vocabularyGraph.links, ...extra.links],
+    };
+  }, [additionalNodes]);
   // A new request also recenters a node that was selected before panning away.
   const selectNode = useCallback((id: string) => {
     if (!vocabularyNodes.has(id)) {

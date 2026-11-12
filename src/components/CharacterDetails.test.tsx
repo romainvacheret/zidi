@@ -44,7 +44,7 @@ test('opens a character preview, closes with Escape, and keeps results', async (
   const fetch = mockApi();
   const user = userEvent.setup();
   render(<DictionaryView />);
-  await user.type(screen.getByLabelText('Character or pinyin'), 'shi{Enter}');
+  await user.type(screen.getByLabelText('Chinese or pinyin'), 'shi{Enter}');
   const card = await screen.findByRole('button', { name: 'View details for 世' });
   await user.click(card);
   const panel = await screen.findByRole('dialog', { name: '世 Character details' });
@@ -55,7 +55,7 @@ test('opens a character preview, closes with Escape, and keeps results', async (
   await user.click(within(panel).getByRole('button', { name: 'Close character details' }));
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(card).toHaveFocus();
-  expect(screen.getByLabelText('Character or pinyin')).toHaveValue('shi');
+  expect(screen.getByLabelText('Chinese or pinyin')).toHaveValue('shi');
   await user.click(card);
   await screen.findByRole('dialog');
   // Exercise the Escape handler when focus is within the panel.
@@ -68,7 +68,7 @@ test('opens a bookmarkable full entry and returns to the previous results', asyn
   mockApi();
   const user = userEvent.setup();
   render(<DictionaryView />);
-  await user.type(screen.getByLabelText('Character or pinyin'), 'shi{Enter}');
+  await user.type(screen.getByLabelText('Chinese or pinyin'), 'shi{Enter}');
   await user.click(await screen.findByRole('button', { name: 'View details for 世' }));
   await user.click(await screen.findByRole('link', { name: 'Open full details' }));
   expect(await screen.findByRole('link', { name: '← Back to results' })).toBeInTheDocument();
@@ -76,8 +76,8 @@ test('opens a bookmarkable full entry and returns to the previous results', asyn
   expect(await screen.findByText('Dictionary sources')).toBeVisible();
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   await user.click(screen.getByRole('link', { name: '← Back to results' }));
-  await waitFor(() => expect(screen.getByLabelText('Character or pinyin')).toBeVisible());
-  expect(screen.getByLabelText('Character or pinyin')).toHaveValue('shi');
+  await waitFor(() => expect(screen.getByLabelText('Chinese or pinyin')).toBeVisible());
+  expect(screen.getByLabelText('Chinese or pinyin')).toHaveValue('shi');
   expect(screen.getByRole('button', { name: 'View details for 世' })).toBeInTheDocument();
 });
 
@@ -111,7 +111,7 @@ test('ignores late details when another character is selected', async () => {
   vi.stubGlobal('fetch', fetch);
   const user = userEvent.setup();
   render(<DictionaryView />);
-  await user.type(screen.getByLabelText('Character or pinyin'), 'shi{Enter}');
+  await user.type(screen.getByLabelText('Chinese or pinyin'), 'shi{Enter}');
   await user.click(await screen.findByRole('button', { name: 'View details for 世' }));
   const signal = fetch.mock.lastCall![1].signal as AbortSignal;
   await user.click(screen.getByRole('button', { name: 'View details for 事' }));
@@ -119,4 +119,30 @@ test('ignores late details when another character is selected', async () => {
   expect(signal.aborted).toBe(true);
   await act(async () => resolve({ ok: true, json: async () => details }));
   expect(within(screen.getByRole('dialog')).queryByText('generation')).not.toBeInTheDocument();
+});
+
+test('opens a non-HSK word result in a preview and a full dictionary entry', async () => {
+  const word = {
+    character: '数据库', pinyin: 'shù jù kù', gloss: 'database', codepoint: null, kind: 'word',
+    traditional: '數據庫', readings: ['shù jù kù'], definitions: ['database', 'data bank'],
+    hsk_level: null, movie_rank: 9000, book_rank: 6000,
+    characters: ['数', '据', '库'], sources: ['cedict'],
+  };
+  const fetch = vi.fn().mockImplementation(async (url: string) => ({
+    ok: true, json: async () => url.includes('/search?') ? { results: [word], limit: 50 } : word,
+  }));
+  vi.stubGlobal('fetch', fetch);
+  const user = userEvent.setup();
+  render(<DictionaryView />);
+  await user.type(screen.getByLabelText('Chinese or pinyin'), 'shujuku{Enter}');
+  await user.click(await screen.findByRole('button', { name: 'View details for 数据库' }));
+  const panel = await screen.findByRole('dialog', { name: '数据库 Word details' });
+  expect(await within(panel).findByText('data bank')).toBeInTheDocument();
+  expect(within(panel).getByText('數據庫')).toBeInTheDocument();
+  expect(within(panel).getByRole('link', { name: 'Open details for 数' })).toBeInTheDocument();
+  expect(fetch.mock.lastCall![0]).toBe('/api/dictionary/words/%E6%95%B0%E6%8D%AE%E5%BA%93');
+  await user.click(within(panel).getByRole('link', { name: 'Open full details' }));
+  expect(await screen.findByRole('heading', { name: '数据库 Word details' })).toBeVisible();
+  expect(await screen.findByText('cedict')).toBeVisible();
+  expect(screen.getByRole('link', { name: 'View in graph' })).toHaveAttribute('href', '#/graph/%E6%95%B0%E6%8D%AE%E5%BA%93');
 });

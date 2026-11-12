@@ -129,7 +129,7 @@ export default function GraphView({ graph, selection, onSelect, active = true }:
         <button type="button" className="graph-preview-close" aria-label="Close graph tooltip"
           onClick={() => setDismissedSelection(selection)}>×</button>
         <GraphNodePreview key={selectedNode.id} node={selectedNode} />
-        {!vocabularyNodes.has(selectedNode.id) && <p className="graph-preview-note">Outside HSK 1–3 · shown as a standalone character</p>}
+        {!vocabularyNodes.has(selectedNode.id) && <p className="graph-preview-note">Outside HSK 1–3 · {Array.from(selectedNode.id).length > 1 ? 'linked to its constituent characters' : 'shown as a standalone character'}</p>}
       </aside>}
     </div>
   );

@@ -12,7 +12,7 @@ test('searches character/pinyin and English modes through HTTP and displays card
   vi.stubGlobal('fetch', fetch);
   const user = userEvent.setup();
   render(<DictionaryView />);
-  await user.type(screen.getByLabelText('Character or pinyin'), 'shì{Enter}');
+  await user.type(screen.getByLabelText('Chinese or pinyin'), 'shì{Enter}');
   expect(await screen.findByText('世')).toBeInTheDocument();
   expect(screen.getByText('generation')).toBeInTheDocument();
   expect(fetch.mock.calls[0][0]).toBe('/api/dictionary/search?q=sh%C3%AC&mode=character');
@@ -34,12 +34,12 @@ test('shows empty results, handles errors, and allows retrying', async () => {
   const user = userEvent.setup();
   render(<DictionaryView />);
   expect(screen.getByRole('button', { name: 'Search' })).toBeDisabled();
-  await user.type(screen.getByLabelText('Character or pinyin'), 'unknown{Enter}');
+  await user.type(screen.getByLabelText('Chinese or pinyin'), 'unknown{Enter}');
   expect(await screen.findByRole('alert')).toHaveTextContent('backend');
   await user.click(screen.getByRole('button', { name: 'Search' }));
   expect(await screen.findByRole('alert')).toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'Search' }));
-  expect(await screen.findByText('No matching characters.')).toBeInTheDocument();
+  expect(await screen.findByText('No matching entries.')).toBeInTheDocument();
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
 
@@ -49,7 +49,7 @@ test('ignores an obsolete response after editing the query', async () => {
   vi.stubGlobal('fetch', fetch);
   const user = userEvent.setup();
   render(<DictionaryView />);
-  const input = screen.getByLabelText('Character or pinyin');
+  const input = screen.getByLabelText('Chinese or pinyin');
   await user.type(input, 'shi{Enter}');
   expect(screen.getByText('Searching…')).toBeInTheDocument();
   const signal = fetch.mock.calls[0][1].signal as AbortSignal;
