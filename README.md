@@ -55,6 +55,8 @@ Select a dictionary result to inspect its readings, definition, stroke count, HS
 
 Choose **Open full details** for a dedicated entry with the complete common-word list, variants, and dictionary sources. Entry URLs such as `/#/dictionary/%E4%B8%96` can be bookmarked or opened directly. Browser Back and **Back to results** preserve the current search during the session. On first startup after this update, existing databases are upgraded from the bundled source records automatically; future startups reuse them.
 
+Full character entries also show **Stroke order** and **Component decomposition** using bundled vector data. Play/pause or change animation speed, step with the arrows, reset, or scrub the stroke slider. Select a component in the legend to highlight its matching colored strokes; **Explore** opens that component’s entry. Unmapped strokes remain gray, and missing graphics are identified explicitly. The diagrams work offline, support reduced-motion preferences with manual stepping, and credit Dong Chinese and Make Me a Hanzi beneath the illustrations.
+
 ## Graph exploration
 
 Use **Search graph** above the sidebar list to narrow its entries by Chinese text, bundled pinyin, or English meaning. Pinyin filtering ignores tones and accepts spaces, tone numbers, and `ü`/`v`. The matching count updates as you type; clear the field to restore every entry. Filtering affects only the list, preserving the graph layout and selection.

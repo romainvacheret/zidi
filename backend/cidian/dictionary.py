@@ -6,6 +6,7 @@ import unicodedata
 
 from .db import DictionaryRepository
 from .db.dictionary_database import iter_keyed_strings
+from .character_graphics import character_strokes
 
 SearchMode = Literal["character", "translation"]
 
@@ -86,6 +87,7 @@ def character_details(db_file: Path, character: str) -> dict | None:
     statistics = record.get("statistics") or {}
     return {
         "character": record["char"], "gloss": record.get("gloss"),
+        "stroke_data": character_strokes(record),
         "pinyin": tone_only_pinyin(record["pinyin_text"]), "codepoint": record.get("codepoint"),
         "stroke_count": record.get("strokeCount"), "original_meaning": record.get("originalMeaning"),
         "hint": record.get("hint"), "hsk_level": statistics.get("hskLevel"),

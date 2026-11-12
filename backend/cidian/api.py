@@ -43,7 +43,15 @@ class CharacterWord(BaseModel):
     gloss: str | None
 
 
+class CharacterStrokeData(BaseModel):
+    strokes: list[str]
+    medians: list[list[tuple[float, float]]]
+    component_indices: list[int | None]
+    source: str
+
+
 class CharacterDetails(DictionaryEntry):
+    stroke_data: CharacterStrokeData | None = None
     stroke_count: int | None
     original_meaning: str | None
     hint: str | None

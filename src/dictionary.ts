@@ -14,6 +14,7 @@ export interface SearchResponse {
 }
 
 export interface CharacterDetails extends DictionaryEntry {
+  stroke_data?: CharacterStrokeData | null;
   stroke_count: number | null;
   original_meaning: string | null;
   hint: string | null;
@@ -25,6 +26,13 @@ export interface CharacterDetails extends DictionaryEntry {
   words: { word: string; traditional: string | null; gloss: string | null }[];
   variants: string[];
   sources: string[];
+}
+
+export interface CharacterStrokeData {
+  strokes: string[];
+  medians: [number, number][][];
+  component_indices: (number | null)[];
+  source: string;
 }
 
 export interface WordDetailsData extends DictionaryEntry {

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { characterHref, getCharacterDetails, type CharacterDetails as Details } from '../dictionary';
 import { graphHref } from '../navigation';
 import EntryPanel from './EntryPanel';
+import CharacterWriting from './CharacterWriting';
 
 interface Props {
   character: string;
@@ -26,13 +27,14 @@ function DetailContent({ data, full }: { data: Details; full: boolean }) {
         {data.hsk_level !== null && <div><dt>HSK level</dt><dd>{data.hsk_level}</dd></div>}
         {data.codepoint && <div><dt>Unicode</dt><dd>{data.codepoint}</dd></div>}
       </dl>
+      {full && <CharacterWriting key={data.character} data={data} />}
       <div className="character-sections">
         {(data.hint || data.original_meaning) && <section className="character-section">
           <h3>Origin & structure</h3>
           {data.original_meaning && <p><span className="detail-label">Original meaning</span> {data.original_meaning}</p>}
           {data.hint && <p>{data.hint}</p>}
         </section>}
-        {data.components.length > 0 && <section className="character-section">
+        {!full && data.components.length > 0 && <section className="character-section">
           <h3>Components</h3>
           <ul className="component-list">
             {data.components.map((component, index) => <li key={`${component.character}-${index}`}>
@@ -54,7 +56,8 @@ function DetailContent({ data, full }: { data: Details; full: boolean }) {
           <h3>Common words</h3>
           <ul className="character-words">
             {words.map((word, index) => <li key={`${word.word}-${index}`}>
-              <span lang="zh">{word.word}</span><span>{word.gloss || '—'}</span>
+              <a lang="zh" href={characterHref(word.word)} aria-label={`Open details for ${word.word}`}>{word.word}</a>
+              <span>{word.gloss || '—'}</span>
             </li>)}
           </ul>
           {!full && data.words.length > words.length && <p className="detail-note">More words in the full entry.</p>}

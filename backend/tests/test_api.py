@@ -22,6 +22,8 @@ class DictionaryApiTest(unittest.TestCase):
              "strokeCount": 5, "codepoint": "U+4E16", "hint": "Depicts leaves.", "originalMeaning": "leaf",
              "pinyinFrequencies": [{"pinyin": "shì", "count": 1238}],
              "components": [{"character": "木", "type": ["meaning"], "hint": None}],
+             "images": [{"source": "makemeahanzi", "type": "Regular", "fragments": [[0]],
+                         "data": {"strokes": ["M 10 10 L 20 20 Z"], "medians": [[[10, 10], [20, 20]]]}}],
              "variants": [{"char": "世"}, {"char": "枼"}, {"char": "枼"}, {"char": ""}],
              "sources": ["unicode"], "statistics": {"hskLevel": 3, "movieCharRank": 340,
                  "topWords": [{"word": "世界", "trad": "世界", "gloss": "world"}]}},
@@ -98,9 +100,12 @@ class DictionaryApiTest(unittest.TestCase):
             self.assertEqual(data["variants"], ["枼"])
             self.assertEqual(data["movie_rank"], 340)
             self.assertEqual(data["sources"], ["unicode"])
+            self.assertEqual(data["stroke_data"]["component_indices"], [0])
+            self.assertEqual(data["stroke_data"]["medians"], [[[10, 10], [20, 20]]])
             sparse = client.get("/api/dictionary/characters/尸").json()
             self.assertIsNone(sparse["hint"])
             self.assertEqual(sparse["components"], [])
+            self.assertIsNone(sparse["stroke_data"])
             self.assertEqual(client.get("/api/dictionary/characters/𠮷").status_code, 404)
             self.assertEqual(client.get("/api/dictionary/characters/世界").status_code, 422)
 
