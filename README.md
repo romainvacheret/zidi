@@ -26,3 +26,5 @@ The production build is written to `dist/`. Run `npm run preview` to inspect it 
 ## Project documentation
 
 Planning and work tracking live under [docs/](docs/plans/revival.md). See the [work tracking conventions](docs/agents/issue-tracker.md) and [domain documentation conventions](docs/agents/domain.md).
+
+The [graph architecture guide](docs/architecture/graph.md) explains vocabulary relationships, simulation state, selection, resizing, and validation.

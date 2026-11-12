@@ -1,34 +1,39 @@
-import { Graph, Vertice, Edge, VocabularyElement } from "./types";
+import type { Graph, GraphLink, VocabularyElement } from './types';
 
-const _getEdgeId = (source: string, target: string): string => `${source}-${target}`;
+const isHanCharacter = (text: string) => /^\p{Script=Han}$/u.test(text);
 
-export const toGraph = (vocabulary: Array<VocabularyElement>, graph?: Graph): Graph => {
-    const texts = vocabulary.map(vocab => vocab.text);
-    const vertices: Array<Vertice> = graph === undefined ? [] : graph.nodes;
-    const edges: Array<Edge> = graph === undefined ? [] : graph.links;
-    const verticesSet: Set<string> = new Set(vertices.map(v => v.id));
-    const edgesSet: Set<string> = new Set(edges.map(e=> _getEdgeId(e.source, e.target)));
+export function toGraph(vocabulary: readonly VocabularyElement[]): Graph {
+  const nodes = new Map<string, { id: string; entries: VocabularyElement[] }>();
+  const links = new Map<string, GraphLink>();
 
-    texts.map(text => {
-        if(!verticesSet.has(text)) {
-            verticesSet.add(text);
-            vertices.push({id: text});
-        }
-        Array.from(text).forEach(char => {
-            const edgeId: string = _getEdgeId(text, char);
+  const addNode = (id: string) => {
+    let node = nodes.get(id);
+    if (!node) {
+      node = { id, entries: [] };
+      nodes.set(id, node);
+    }
+    return node;
+  };
 
-            if(!verticesSet.has(char)) {
-                verticesSet.add(char);
-                vertices.push({id: char});
-            }
+  for (const entry of vocabulary) {
+    const text = entry.text.trim();
+    if (!text) continue;
 
-            // Do not create an edge between a single character word and itself
-            if(text.length !== 1 && !edgesSet.has(edgeId))  {
-                edgesSet.add(edgeId);
-                edges.push({source: text, target: char});
-            }
-        });
-    });
+    // A label can have several readings/meanings and still be one graph node.
+    addNode(text).entries.push(entry);
 
-    return graph === undefined ? {nodes: vertices, links: edges} : graph;
+    // Iterate Unicode code points, not UTF-16 units. Punctuation in vocabulary
+    // patterns (e.g. 因为…所以…) is not a Chinese character relationship.
+    for (const character of new Set(Array.from(text).filter(isHanCharacter))) {
+      addNode(character);
+      if (text === character) continue;
+
+      links.set(JSON.stringify([text, character]), {
+        source: text,
+        target: character,
+      });
+    }
+  }
+
+  return { nodes: [...nodes.values()], links: [...links.values()] };
 }

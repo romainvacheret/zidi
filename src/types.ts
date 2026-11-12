@@ -1,21 +1,22 @@
-export interface Vertice {
-	id: string
-	index?: number
-}
-
-export interface Edge {
-	source: string
-	target: string
-}
-
-export interface Graph {
-	nodes: Array<Vertice>
-	links: Array<Edge>
-}
-
 export interface VocabularyElement {
-	text: string,
-	pronunciation: string,
-	description: string
+  readonly text: string;
+  readonly pronunciation: string;
+  readonly description: string;
+}
+
+export interface GraphNode {
+  readonly id: string;
+  readonly entries: readonly VocabularyElement[];
+}
+
+export interface GraphLink {
+  readonly source: string;
+  readonly target: string;
+}
+
+// Vocabulary relationships contain no force simulation or canvas state.
+export interface Graph {
+  readonly nodes: readonly GraphNode[];
+  readonly links: readonly GraphLink[];
 }
 

@@ -1,28 +1,38 @@
-import React from "react";
-import { GraphData } from "react-force-graph-2d";
-import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
+import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
+import type { GraphNode } from '../types';
 
 interface SidebarProps {
-    graph?: GraphData
-    centerAt(x: number | undefined, y:number | undefined): void
+  nodes: readonly GraphNode[];
+  selectedId?: string;
+  onSelect(id: string): void;
 }
 
-const CustomSideBar: React.FC<SidebarProps> = ({ graph, centerAt }) => {
-    const result: Array<React.JSX.Element>= graph !== undefined ? 
-        graph.nodes.map(node => 
+function CustomSideBar({ nodes, selectedId, onSelect }: SidebarProps) {
+  return (
+    <Sidebar className="vocabulary-sidebar" width="clamp(180px, 25vw, 280px)" aria-label="Vocabulary">
+      <header className="sidebar-header">
+        <h1>Zìdì <span lang="zh">字缔</span></h1>
+        <h2>Words and characters</h2>
+        <p>{nodes.length} nodes · HSK 1–3</p>
+      </header>
+      <nav className="vocabulary-list" aria-label="Words and characters">
+        <Menu menuItemStyles={{
+          button: { '&.ps-active': { backgroundColor: '#dbeafe', color: '#1d4ed8' } },
+        }}>
+          {nodes.map(node => (
             <MenuItem
-            onClick={() => centerAt(node.x, node.y)}>
-            <p> { node.id }</p>
+              key={node.id}
+              component={<button type="button" aria-pressed={node.id === selectedId} />}
+              active={node.id === selectedId}
+              onClick={() => onSelect(node.id)}
+            >
+              <span lang="zh">{node.id}</span>
             </MenuItem>
-        ) : [<></>];
-
-    return <Sidebar style={{ height: "100vh", position: "absolute" }}>
-        <Menu>
-            <SubMenu label="Characters">
-                { result }
-            </SubMenu>
+          ))}
         </Menu>
+      </nav>
     </Sidebar>
-};
+  );
+}
 
 export default CustomSideBar;
