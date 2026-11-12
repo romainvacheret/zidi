@@ -274,3 +274,12 @@ a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid 
 .word-characters { display: flex; flex-wrap: wrap; gap: 12px; }
 .word-characters a { display: grid; place-items: center; height: 64px; min-width: 64px; padding: 12px; border: 1px solid #dfe5ee; border-radius: 10px; background: #f5f8ff; color: #2451b5; font-size: 28px; text-decoration: none; }
 .word-characters a:hover { background: #eaf0ff; border-color: #94acd8; }
+
+.graph-sidebar-search { display: block; margin: 18px 0 8px; color: #526174; font-size: 12px; font-weight: 600; }
+.graph-sidebar-search-row { position: relative; }
+.graph-sidebar-search-row input { width: 100%; min-width: 0; padding: 10px 30px 10px 10px; border: 1px solid #cbd5e1; border-radius: 7px; background: white; color: #172b4d; font: inherit; font-size: 12px; }
+.graph-sidebar-search-row input::-webkit-search-cancel-button { display: none; }
+.graph-sidebar-clear { position: absolute; top: 4px; right: 3px; width: 28px; height: 28px; border: 0; border-radius: 5px; background: white; color: #64748b; font-size: 20px; cursor: pointer; }
+.graph-sidebar-clear:hover { background: #eaf0ff; color: #2451b5; }
+.sidebar-header .graph-sidebar-count { margin: 10px 0 0; font-size: 11px; }
+.graph-sidebar-empty { padding: 12px 16px; color: #64748b; font-size: 13px; line-height: 1.6; }

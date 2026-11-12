@@ -57,6 +57,8 @@ Choose **Open full details** for a dedicated entry with the complete common-word
 
 ## Graph exploration
 
+Use **Search graph** above the sidebar list to narrow its entries by Chinese text, bundled pinyin, or English meaning. Pinyin filtering ignores tones and accepts spaces, tone numbers, and `ü`/`v`. The matching count updates as you type; clear the field to restore every entry. Filtering affects only the list, preserving the graph layout and selection.
+
 Click a graph node or select it in the sidebar to see a small, clickable preview with pinyin and a short English meaning. It follows the node while panning and zooming. Click the preview to open the entry; close it with ×, Escape, or a canvas-background click. Selecting the node again reopens the preview and recenters it.
 
 **View in graph** on an entry opens the Graph tab centered on that character or word. Graph targets use bookmarkable URLs such as `/#/graph/%E4%B8%96`. Dictionary characters outside the bundled HSK graph appear as standalone nodes for the current session; existing vocabulary relationships stay intact.

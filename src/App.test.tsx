@@ -249,3 +249,45 @@ test('adds a dictionary word outside HSK with its constituent links', async () =
   ]));
   expect(await screen.findByText('shù jù kù')).toBeInTheDocument();
 });
+
+test('filters sidebar entries by Chinese, pinyin and English without changing the graph', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByLabelText('Character graph');
+  const graphData = rendererProps().graphData;
+  const search = screen.getByRole('searchbox', { name: 'Search graph' });
+  for (const query of ['爸爸', 'bà ba', 'baba', 'ba4 ba', 'father (informal)']) {
+    await user.clear(search);
+    await user.type(search, query);
+    expect(screen.getByRole('button', { name: '爸爸' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '爱' })).not.toBeInTheDocument();
+    expect(rendererProps().graphData).toBe(graphData);
+  }
+  await user.click(screen.getByRole('button', { name: '爸爸' }));
+  const node = graphData!.nodes.find(node => node.id === '爸爸')!;
+  expect(centerAt).toHaveBeenLastCalledWith(node.x, node.y, 300);
+  expect(screen.getByRole('button', { name: '爸爸' })).toHaveAttribute('aria-pressed', 'true');
+  await user.click(screen.getByRole('button', { name: 'Clear graph search' }));
+  expect(search).toHaveFocus();
+  expect(search).toHaveValue('');
+  expect(screen.getByRole('button', { name: '爱' })).toBeInTheDocument();
+  await user.type(search, 'no-matching-vocabulary');
+  expect(screen.getByText('No matching entries. Try another search.')).toBeInTheDocument();
+  expect(screen.getByText(/0 of \d+ entries/)).toBeInTheDocument();
+  expect(rendererProps().graphData).toBe(graphData);
+});
+
+test('sidebar pinyin filtering supports umlauts and retains its query across feature tabs', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const search = screen.getByRole('searchbox', { name: 'Search graph' });
+  for (const query of ['nǚ ér', 'nv er', 'nü er', 'nv3 er2']) {
+    await user.clear(search);
+    await user.type(search, query);
+    expect(screen.getByRole('button', { name: '女儿' })).toBeInTheDocument();
+  }
+  await user.click(screen.getByRole('tab', { name: 'Dictionary' }));
+  await user.click(screen.getByRole('tab', { name: 'Graph' }));
+  expect(search).toHaveValue('nv3 er2');
+  expect(screen.getByRole('button', { name: '女儿' })).toBeInTheDocument();
+});
