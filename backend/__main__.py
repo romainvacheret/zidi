@@ -1,18 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
-
-from cidian.db import DictionaryBuilder
-from cidian.gui import launch
-
-
-DB_FILE = Path("dictionary.sqlite3")
+import uvicorn
 
 
 def main() -> int:
-    if not DB_FILE.exists():
-        DictionaryBuilder(DB_FILE).create_database()
-    return launch(DB_FILE)
+    uvicorn.run("cidian.api:app", host="127.0.0.1", port=8000)
+    return 0
 
 
 if __name__ == "__main__":

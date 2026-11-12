@@ -145,3 +145,20 @@ test('isolates renderer mutations across application mounts', async () => {
   expect(current.nodes[0].x).toBeUndefined();
   expect(typeof current.links[0].source).toBe('string');
 });
+
+test('switches feature tabs with mouse and keyboard while retaining graph selection', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const node = await screen.findByRole('button', { name: '爱' });
+  await user.click(node);
+  await user.click(screen.getByRole('tab', { name: 'Dictionary' }));
+  expect(screen.getByRole('heading', { name: 'Dictionary' })).toBeVisible();
+  expect(screen.queryByRole('button', { name: 'Fit graph' })).not.toBeInTheDocument();
+  await user.type(screen.getByLabelText('Character or pinyin'), 'shi');
+  screen.getByRole('tab', { name: 'Dictionary' }).focus();
+  await user.keyboard('{ArrowRight}');
+  expect(screen.getByRole('tab', { name: 'Graph' })).toHaveFocus();
+  expect(screen.getByRole('button', { name: '爱' })).toHaveAttribute('aria-pressed', 'true');
+  await user.click(screen.getByRole('tab', { name: 'Dictionary' }));
+  expect(screen.getByLabelText('Character or pinyin')).toHaveValue('shi');
+});

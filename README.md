@@ -1,6 +1,6 @@
 # Zìdì (字缔)
 
-Explore relations between Chinese words and their constituent characters.
+Search the Chinese dictionary and explore relations between Chinese words and their constituent characters in two tabs.
 
 ## Development
 
@@ -13,6 +13,20 @@ npm run dev
 
 Vite serves the app at the URL printed in the terminal. `npm start` is an alias for the same development server.
 
+Start the Python backend in a second terminal (Python 3.10+):
+
+```sh
+cd backend
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m uvicorn cidian.api:app --reload --host 127.0.0.1 --port 8000
+```
+
+On Windows, use `.venv\Scripts\python` instead of `.venv/bin/python`.
+The first backend startup builds `backend/dictionary.sqlite3` from the bundled JSONL resources; wait for startup to finish before searching. Later starts reuse it. Set `ZIDI_DB_PATH` to use another database location. Resource paths are resolved from the backend directory, independently of the working directory.
+
+Vite proxies `/api` requests to FastAPI on port 8000. Open the Vite URL for development. The graph works independently of the backend. The Dictionary tab supports the previous GUI's character, pinyin (with or without tones), and English translation searches; results show characters, pinyin, and available definitions. Translation matches in word entries also return their constituent characters, preserving the original dictionary behavior. Searches return up to 50 characters; refine the query when the limit is reached.
+
 ## Checks and production build
 
 ```sh
@@ -22,6 +36,16 @@ npm run check
 This runs ESLint, TypeScript checking, the production build, and Vitest tests. Individual commands are `npm run lint`, `npm run typecheck`, `npm run build`, and `npm test`. Use `npm run test:watch` during development.
 
 The production build is written to `dist/`. Run `npm run preview` to inspect it locally.
+
+Run backend tests from `backend/` after installing `requirements-dev.txt`:
+
+```sh
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+To run the complete built application from one local URL, run `npm run build`, then start FastAPI with the command above (or run `.venv/bin/python __main__.py` from `backend/`). Open <http://127.0.0.1:8000>. Restart FastAPI if the frontend build was created after backend startup. API documentation is available at <http://127.0.0.1:8000/docs>.
+
+The HTTP API and dictionary operations are separate from the React interface. A future pywebview host can load this same local URL and manage server startup without coupling dictionary logic to a desktop framework. Pywebview packaging and lifecycle management are deferred; PySide is no longer required to run the app.
 
 ## Project documentation
 
