@@ -52,6 +52,8 @@ _PINYIN_TONE_MAP = {
 }
 
 _SEARCH_SEPARATORS = {" ", "\t", "\n", "\r", "-", "_", "'", "’", "·", "."}
+_TRANSLATION_FIELDS = {"gloss", "originalMeaning", "hint"}
+_TRANSLATION_SPLIT_RE = re.compile(r"[^0-9a-z]+")
 
 
 def iter_keyed_strings(value, keys: set[str]) -> Iterator[str]:
@@ -164,6 +166,27 @@ def pinyin_terms_from_token(token: str) -> list[str]:
     return unique_terms([normalized, numbered])
 
 
+def normalize_translation_term(text: str) -> str:
+    if not text:
+        return ""
+    text = unicodedata.normalize("NFKC", text.strip().casefold())
+    pieces = [char if char.isalnum() else " " for char in text]
+    return " ".join("".join(pieces).split())
+
+
+def translation_terms_from_text(text: str) -> list[str]:
+    normalized = normalize_translation_term(text)
+    if not normalized:
+        return []
+
+    terms = [normalized]
+    tokens = [token for token in _TRANSLATION_SPLIT_RE.split(normalized) if token]
+    terms.extend(tokens)
+    if len(tokens) > 1:
+        terms.append(" ".join(tokens))
+    return unique_terms(terms)
+
+
 class DictionaryBuilder:
     def __init__(
         self,
@@ -202,7 +225,9 @@ class DictionaryBuilder:
             PRAGMA foreign_keys = ON;
 
             DROP TABLE IF EXISTS character_search_terms;
+            DROP TABLE IF EXISTS character_translation_terms;
             DROP TABLE IF EXISTS word_search_terms;
+            DROP TABLE IF EXISTS word_translation_terms;
             DROP TABLE IF EXISTS characters;
             DROP TABLE IF EXISTS words;
 
@@ -225,6 +250,14 @@ class DictionaryBuilder:
             CREATE INDEX idx_characters_char ON characters(char);
             CREATE INDEX idx_character_terms_term ON character_search_terms(term);
 
+            CREATE TABLE character_translation_terms (
+                character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+                term TEXT NOT NULL,
+                PRIMARY KEY (character_id, term)
+            );
+
+            CREATE INDEX idx_character_translation_terms_term ON character_translation_terms(term);
+
             CREATE TABLE words (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 source_id TEXT,
@@ -243,6 +276,14 @@ class DictionaryBuilder:
             CREATE INDEX idx_words_simp ON words(simp);
             CREATE INDEX idx_words_trad ON words(trad);
             CREATE INDEX idx_word_terms_term ON word_search_terms(term);
+
+            CREATE TABLE word_translation_terms (
+                word_id INTEGER NOT NULL REFERENCES words(id) ON DELETE CASCADE,
+                term TEXT NOT NULL,
+                PRIMARY KEY (word_id, term)
+            );
+
+            CREATE INDEX idx_word_translation_terms_term ON word_translation_terms(term);
             """
         )
 
@@ -284,6 +325,10 @@ class DictionaryBuilder:
             "INSERT OR IGNORE INTO character_search_terms (character_id, term) VALUES (?, ?)",
             ((character_id, term) for term in self._build_character_terms(record)),
         )
+        conn.executemany(
+            "INSERT OR IGNORE INTO character_translation_terms (character_id, term) VALUES (?, ?)",
+            ((character_id, term) for term in self._build_character_translation_terms(record)),
+        )
 
     def _insert_word(self, conn: sqlite3.Connection, record: dict) -> None:
         pinyin_text = self._collect_raw_pinyin_text(record)
@@ -304,6 +349,10 @@ class DictionaryBuilder:
         conn.executemany(
             "INSERT OR IGNORE INTO word_search_terms (word_id, term) VALUES (?, ?)",
             ((word_id, term) for term in self._build_word_terms(record)),
+        )
+        conn.executemany(
+            "INSERT OR IGNORE INTO word_translation_terms (word_id, term) VALUES (?, ?)",
+            ((word_id, term) for term in self._build_word_translation_terms(record)),
         )
 
     def _collect_raw_pinyin_text(self, record: dict) -> str:
@@ -327,6 +376,35 @@ class DictionaryBuilder:
             else:
                 terms.extend(pinyin_terms_from_phrase(text))
         return unique_terms(terms)
+
+    def _build_character_translation_terms(self, record: dict) -> list[str]:
+        terms: list[str] = []
+        for text in self._iter_translation_texts(record, character=True):
+            terms.extend(translation_terms_from_text(text))
+        return unique_terms(terms)
+
+    def _build_word_translation_terms(self, record: dict) -> list[str]:
+        terms: list[str] = []
+        for text in self._iter_translation_texts(record, character=False):
+            terms.extend(translation_terms_from_text(text))
+        return unique_terms(terms)
+
+    def _iter_translation_texts(self, value, *, character: bool) -> Iterator[str]:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if character and key in _TRANSLATION_FIELDS and isinstance(child, str):
+                    yield child
+                elif not character and key == "gloss" and isinstance(child, str):
+                    yield child
+                elif not character and key == "definitions" and isinstance(child, list):
+                    for item in child:
+                        if isinstance(item, str):
+                            yield item
+                else:
+                    yield from self._iter_translation_texts(child, character=character)
+        elif isinstance(value, list):
+            for item in value:
+                yield from self._iter_translation_texts(item, character=character)
 
 
 class DictionaryRepository:
@@ -375,6 +453,107 @@ class DictionaryRepository:
         )
         return cursor.fetchall()
 
+    def search_characters_by_translation(
+        self,
+        query: str,
+        limit: int = 50,
+    ) -> list[tuple[str, str | None, str, str | None]]:
+        """Search characters by English translation text."""
+        query = normalize_translation_term(query)
+        if not query:
+            return []
+
+        candidate_terms = self._candidate_translation_terms(query)
+        if not candidate_terms:
+            return []
+
+        character_rows = self._search_character_rows_by_translation_terms(candidate_terms, limit)
+        if len(character_rows) >= limit:
+            return character_rows[:limit]
+
+        word_rows = self._search_character_rows_from_words_by_translation_terms(
+            candidate_terms,
+            limit=limit,
+        )
+        combined: list[tuple[str, str | None, str, str | None]] = []
+        seen: set[str] = set()
+        for row in character_rows + word_rows:
+            character = row[0]
+            if character in seen:
+                continue
+            seen.add(character)
+            combined.append(row)
+            if len(combined) >= limit:
+                break
+        return combined
+
+    def _search_character_rows_by_translation_terms(
+        self,
+        candidate_terms: list[str],
+        limit: int,
+    ) -> list[tuple[str, str | None, str, str | None]]:
+        placeholders = ",".join("?" for _ in candidate_terms)
+        cursor = self.conn.execute(
+            f"""
+            SELECT DISTINCT c.char, c.gloss, c.pinyin_text, c.codepoint
+            FROM characters AS c
+            JOIN character_translation_terms AS t ON t.character_id = c.id
+            WHERE t.term IN ({placeholders})
+            ORDER BY c.char
+            LIMIT ?
+            """,
+            (*candidate_terms, limit),
+        )
+        return cursor.fetchall()
+
+    def _search_character_rows_from_words_by_translation_terms(
+        self,
+        candidate_terms: list[str],
+        *,
+        limit: int,
+    ) -> list[tuple[str, str | None, str, str | None]]:
+        placeholders = ",".join("?" for _ in candidate_terms)
+        cursor = self.conn.execute(
+            f"""
+            SELECT DISTINCT w.simp, w.trad
+            FROM words AS w
+            JOIN word_translation_terms AS t ON t.word_id = w.id
+            WHERE t.term IN ({placeholders})
+            ORDER BY w.simp
+            LIMIT ?
+            """,
+            (*candidate_terms, limit),
+        )
+        matched_words = cursor.fetchall()
+        if not matched_words:
+            return []
+
+        characters: list[str] = []
+        seen_characters: set[str] = set()
+        for simp, trad in matched_words:
+            for text in (simp, trad or ""):
+                for character in text:
+                    if character in seen_characters:
+                        continue
+                    seen_characters.add(character)
+                    characters.append(character)
+
+        if not characters:
+            return []
+
+        placeholders = ",".join("?" for _ in characters)
+        cursor = self.conn.execute(
+            f"""
+            SELECT DISTINCT c.char, c.gloss, c.pinyin_text, c.codepoint
+            FROM characters AS c
+            WHERE c.char IN ({placeholders})
+            ORDER BY c.char
+            LIMIT ?
+            """,
+            (*characters, limit),
+        )
+        return cursor.fetchall()
+
     def _candidate_pinyin_terms(self, query: str) -> list[str]:
         if any(char.isdigit() for char in query):
             return unique_terms([normalize_pinyin_term(query, keep_digits=True)])
@@ -383,3 +562,12 @@ class DictionaryRepository:
             return unique_terms([pinyin_syllable_to_numbered(query)])
 
         return unique_terms([normalize_pinyin_term(query, keep_digits=False)])
+
+    def _candidate_translation_terms(self, query: str) -> list[str]:
+        normalized = normalize_translation_term(query)
+        if not normalized:
+            return []
+        tokens = [token for token in _TRANSLATION_SPLIT_RE.split(normalized) if token]
+        terms = [normalized]
+        terms.extend(tokens)
+        return unique_terms(terms)

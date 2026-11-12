@@ -8,6 +8,9 @@ from typing import Iterable
 
 from ..db import DictionaryRepository
 
+SEARCH_MODE_CHARACTER = "character"
+SEARCH_MODE_TRANSLATION = "translation"
+
 
 def _token_has_tone(text: str) -> bool:
     return any(char.isdigit() for char in text) or any(
@@ -35,6 +38,15 @@ def cards_from_search_results(rows: Iterable[tuple[str, str | None, str, str | N
     for char, _gloss, pinyin_text, _codepoint in rows:
         cards.append(CharacterCardData(character=char, pinyin=tone_only_pinyin(pinyin_text)))
     return cards
+
+
+def cards_from_query(repository: DictionaryRepository, query: str, search_mode: str) -> list[CharacterCardData]:
+    if search_mode == SEARCH_MODE_TRANSLATION:
+        rows = repository.search_characters_by_translation(query)
+    else:
+        rows = repository.search_characters(query)
+    return cards_from_search_results(rows)
+
 
 def launch(db_file: str | Path) -> int:
     from PySide6 import QtCore, QtWidgets
@@ -82,10 +94,16 @@ def launch(db_file: str | Path) -> int:
             self.search_input = QtWidgets.QLineEdit()
             self.search_input.setPlaceholderText("Search by character or pinyin")
 
+            self.search_mode = QtWidgets.QComboBox()
+            self.search_mode.addItem("Character / Pinyin", SEARCH_MODE_CHARACTER)
+            self.search_mode.addItem("Translation", SEARCH_MODE_TRANSLATION)
+            self.search_mode.currentIndexChanged.connect(self._update_placeholder)
+
             self.search_button = QtWidgets.QPushButton("Search")
             self.search_button.clicked.connect(self.perform_search)
             self.search_input.returnPressed.connect(self.perform_search)
 
+            search_row.addWidget(self.search_mode)
             search_row.addWidget(self.search_input, 1)
             search_row.addWidget(self.search_button)
 
@@ -143,6 +161,13 @@ def launch(db_file: str | Path) -> int:
                 }
                 """
             )
+            self._update_placeholder()
+
+        def _update_placeholder(self, *_args) -> None:
+            if self.search_mode.currentData() == SEARCH_MODE_TRANSLATION:
+                self.search_input.setPlaceholderText("Search by English translation")
+            else:
+                self.search_input.setPlaceholderText("Search by character or pinyin")
 
         def closeEvent(self, event) -> None:  # type: ignore[override]
             self.repository.close()
@@ -150,7 +175,8 @@ def launch(db_file: str | Path) -> int:
 
         def perform_search(self) -> None:
             query = self.search_input.text().strip()
-            results = cards_from_search_results(self.repository.search_characters(query))
+            mode = self.search_mode.currentData()
+            results = cards_from_query(self.repository, query, mode)
             self._show_cards(results)
 
         def _show_cards(self, cards: list[CharacterCardData]) -> None:
@@ -161,7 +187,8 @@ def launch(db_file: str | Path) -> int:
                     widget.deleteLater()
 
             if not cards:
-                empty_label = QtWidgets.QLabel("No matching characters.")
+                empty_text = "No matching translations." if self.search_mode.currentData() == SEARCH_MODE_TRANSLATION else "No matching characters."
+                empty_label = QtWidgets.QLabel(empty_text)
                 empty_label.setAlignment(alignment.AlignCenter)
                 empty_label.setStyleSheet("color: #6d655b; padding: 24px;")
                 self.results_layout.addWidget(empty_label)

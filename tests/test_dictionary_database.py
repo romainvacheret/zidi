@@ -73,6 +73,14 @@ class DictionaryDatabaseTest(unittest.TestCase):
                     "gloss": "law",
                     "pinyin": "lǜ",
                 },
+                {
+                    "_id": "c7",
+                    "char": "事",
+                    "codepoint": "U+4E8B",
+                    "strokeCount": 8,
+                    "gloss": "matter, affair",
+                    "pinyin": "shì",
+                },
             ],
         )
         self._write_jsonl(
@@ -107,7 +115,7 @@ class DictionaryDatabaseTest(unittest.TestCase):
         builder = DictionaryBuilder(self.db_file, self.char_file, self.word_file)
         counts = builder.create_database()
 
-        self.assertEqual(counts, (6, 1))
+        self.assertEqual(counts, (7, 1))
         self.assertTrue(self.db_file.exists())
 
     def test_tone_marked_pinyin_maps_to_correct_tone_number(self) -> None:
@@ -121,13 +129,13 @@ class DictionaryDatabaseTest(unittest.TestCase):
 
         results = self._search_chars("shi")
 
-        self.assertCountEqual(results, ["世", "尸", "识", "史"])
+        self.assertCountEqual(results, ["世", "尸", "识", "史", "事"])
 
     def test_search_by_numbered_pinyin_matches_one_tone(self) -> None:
         DictionaryBuilder(self.db_file, self.char_file, self.word_file).create_database()
 
         self.assertEqual(self._search_chars("shi1"), ["尸"])
-        self.assertEqual(self._search_chars("shì"), ["世"])
+        self.assertCountEqual(self._search_chars("shì"), ["世", "事"])
 
     def test_search_normalizes_umlaut_via_v(self) -> None:
         DictionaryBuilder(self.db_file, self.char_file, self.word_file).create_database()
@@ -139,6 +147,21 @@ class DictionaryDatabaseTest(unittest.TestCase):
         DictionaryBuilder(self.db_file, self.char_file, self.word_file).create_database()
 
         self.assertEqual(self._search_chars("世"), ["世"])
+
+    def test_search_by_translation_matches_character_gloss(self) -> None:
+        DictionaryBuilder(self.db_file, self.char_file, self.word_file).create_database()
+
+        self.assertEqual(self._search_translation("law"), ["律"])
+
+    def test_search_by_translation_maps_matching_words_to_characters(self) -> None:
+        DictionaryBuilder(self.db_file, self.char_file, self.word_file).create_database()
+
+        self.assertCountEqual(self._search_translation("world affairs"), ["世", "事"])
+
+    def _search_translation(self, query: str) -> list[str]:
+        repo = DictionaryRepository(self.db_file)
+        self.addCleanup(repo.close)
+        return [row[0] for row in repo.search_characters_by_translation(query)]
 
 
 if __name__ == "__main__":
