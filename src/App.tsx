@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import hsk1 from './hsk1.json';
 import hsk2 from './hsk2.json';
@@ -11,7 +11,15 @@ import DictionaryView from './components/DictionaryView';
 const graph = toGraph([...hsk1, ...hsk2, ...hsk3]);
 
 function App() {
-  const [tab, setTab] = useState<'dictionary' | 'graph'>('graph');
+  const [tab, setTab] = useState<'dictionary' | 'graph'>(() =>
+    window.location.hash.startsWith('#/dictionary') ? 'dictionary' : 'graph');
+  useEffect(() => {
+    const navigate = () => {
+      if (window.location.hash.startsWith('#/dictionary')) setTab('dictionary');
+    };
+    window.addEventListener('hashchange', navigate);
+    return () => window.removeEventListener('hashchange', navigate);
+  }, []);
   const [selection, setSelection] = useState<{ id: string } | null>(null);
   // A new request also recenters a node that was selected before panning away.
   const selectNode = useCallback((id: string) => setSelection({ id }), []);
@@ -42,7 +50,7 @@ function App() {
       </nav>
       <section id="dictionary-panel" className="feature-panel" role="tabpanel"
         aria-labelledby="dictionary-tab" tabIndex={0} hidden={tab !== 'dictionary'}>
-        <DictionaryView />
+        <DictionaryView active={tab === 'dictionary'} />
       </section>
       <section id="graph-panel" className="feature-panel" role="tabpanel"
         aria-labelledby="graph-tab" tabIndex={0} hidden={tab !== 'graph'}>

@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { searchDictionary, type SearchMode, type SearchResponse } from '../dictionary';
+import CharacterDetails from './CharacterDetails';
+import { useDictionaryRoute } from '../hooks/useDictionaryRoute';
 
-export default function DictionaryView() {
+export default function DictionaryView({ active = true }: { active?: boolean }) {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<SearchMode>('character');
   const [response, setResponse] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const request = useRef<AbortController | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
+  const selectedCard = useRef<HTMLButtonElement | null>(null);
+  const fullCharacter = useDictionaryRoute();
 
   useEffect(() => () => request.current?.abort(), []);
 
@@ -17,6 +22,7 @@ export default function DictionaryView() {
     setLoading(false);
     setResponse(null);
     setError('');
+    setSelectedCharacter(null);
   }
 
   async function submit(event: FormEvent) {
@@ -42,10 +48,14 @@ export default function DictionaryView() {
 
   return (
     <main className="dictionary-view">
+      <div hidden={fullCharacter !== null}>
       <header>
+        <span className="eyebrow">Your language workspace</span>
         <h1>Dictionary</h1>
-        <p>Find Chinese characters by their writing, pronunciation, or English meaning.</p>
+        <p>Discover a character. Understand how it fits.</p>
       </header>
+      <div className={`dictionary-workspace${selectedCharacter ? ' with-preview' : ''}`}>
+      <div className="dictionary-browser">
       <form className="dictionary-search" onSubmit={submit}>
         <label>
           Search by
@@ -66,12 +76,16 @@ export default function DictionaryView() {
         </label>
         <button type="submit" disabled={!query.trim() || loading}>Search</button>
       </form>
-      <div role="status" aria-live="polite">
+      <div className="dictionary-result-status" role="status" aria-live="polite">
         {loading && <p>Searching…</p>}
-        {!loading && !error && response === null && <p>Enter a query to explore the dictionary.</p>}
+        {!loading && !error && response === null && <div className="dictionary-empty">
+          <span className="empty-character" lang="zh" aria-hidden="true">字</span>
+          <h2>A character is a place to start.</h2>
+          <p>Search by character, pinyin, or English meaning. Select a result to explore its story.</p>
+        </div>}
         {response && <p>{response.results.length === 0
           ? (mode === 'translation' ? 'No matching translations.' : 'No matching characters.')
-          : `${response.results.length} result${response.results.length === 1 ? '' : 's'}`}
+          : `${response.results.length} result${response.results.length === 1 ? '' : 's'} · Most common first`}
           {response.results.length === response.limit && ' · Result limit reached. Refine your search for more specific matches.'}
         </p>}
       </div>
@@ -79,12 +93,29 @@ export default function DictionaryView() {
       <ul className="dictionary-results" aria-label="Dictionary results" aria-busy={loading}>
         {response?.results.map((entry, index) => (
           <li className="dictionary-card" key={`${entry.character}-${index}`}>
+            <button type="button" className="dictionary-card-button"
+              aria-label={`View details for ${entry.character}`}
+              aria-pressed={selectedCharacter === entry.character}
+              onClick={event => {
+                selectedCard.current = event.currentTarget;
+                setSelectedCharacter(entry.character);
+              }}>
             <span className="dictionary-character" lang="zh">{entry.character}</span>
             <span className="dictionary-pinyin" lang="zh-Latn">{entry.pinyin}</span>
             {entry.gloss && <p>{entry.gloss}</p>}
+            <span className="card-detail-hint">Explore character <span aria-hidden="true">→</span></span>
+            </button>
           </li>
         ))}
       </ul>
+      </div>
+      {active && selectedCharacter && !fullCharacter && <CharacterDetails key={selectedCharacter}
+        character={selectedCharacter} returnFocusTo={selectedCard.current}
+        onClose={() => setSelectedCharacter(null)} />}
+      </div>
+      </div>
+      {fullCharacter && <CharacterDetails key={`full-${fullCharacter}`} character={fullCharacter} full
+        onClose={() => { window.location.hash = '/dictionary'; }} />}
     </main>
   );
 }

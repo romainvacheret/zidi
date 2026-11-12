@@ -1,4 +1,6 @@
+from contextlib import closing
 import json
+import sqlite3
 from pathlib import Path
 import tempfile
 import unittest
@@ -16,7 +18,13 @@ class DictionaryApiTest(unittest.TestCase):
         self.root = Path(self.temporary.name)
         self.db = self.root / "dictionary.sqlite3"
         characters = [
-            {"char": "世", "pinyin": "shì", "pinyinSearchString": "shi", "gloss": "generation"},
+            {"char": "世", "pinyin": "shì", "pinyinSearchString": "shi", "gloss": "generation",
+             "strokeCount": 5, "codepoint": "U+4E16", "hint": "Depicts leaves.", "originalMeaning": "leaf",
+             "pinyinFrequencies": [{"pinyin": "shì", "count": 1238}],
+             "components": [{"character": "木", "type": ["meaning"], "hint": None}],
+             "variants": [{"char": "世"}, {"char": "枼"}, {"char": "枼"}, {"char": ""}],
+             "sources": ["unicode"], "statistics": {"hskLevel": 3, "movieCharRank": 340,
+                 "topWords": [{"word": "世界", "trad": "世界", "gloss": "world"}]}},
             {"char": "尸", "pinyin": "shī", "gloss": "corpse"},
             {"char": "律", "pinyin": "lǜ", "gloss": "law"},
         ]
@@ -76,3 +84,33 @@ class DictionaryApiTest(unittest.TestCase):
         with self.assertRaises(json.JSONDecodeError), TestClient(self.app):
             pass
         self.assertFalse(self.db.exists())
+
+    def test_character_details_include_source_fields_and_handle_missing_data(self):
+        with TestClient(self.app) as client:
+            response = client.get("/api/dictionary/characters/世")
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            self.assertEqual(data["stroke_count"], 5)
+            self.assertEqual(data["original_meaning"], "leaf")
+            self.assertEqual(data["readings"], ["shì"])
+            self.assertEqual(data["components"][0]["roles"], ["meaning"])
+            self.assertEqual(data["words"][0]["gloss"], "world")
+            self.assertEqual(data["variants"], ["枼"])
+            self.assertEqual(data["movie_rank"], 340)
+            self.assertEqual(data["sources"], ["unicode"])
+            sparse = client.get("/api/dictionary/characters/尸").json()
+            self.assertIsNone(sparse["hint"])
+            self.assertEqual(sparse["components"], [])
+            self.assertEqual(client.get("/api/dictionary/characters/𠮷").status_code, 404)
+            self.assertEqual(client.get("/api/dictionary/characters/世界").status_code, 422)
+
+    def test_backfills_character_details_without_rebuilding_existing_database(self):
+        with TestClient(self.app):
+            pass
+        with closing(sqlite3.connect(self.db)) as conn, conn:
+            conn.execute("ALTER TABLE characters DROP COLUMN source_json")
+            before = conn.execute("SELECT id, char, usage_rank FROM characters").fetchall()
+        with TestClient(self.app) as client:
+            self.assertEqual(client.get("/api/dictionary/characters/世").json()["original_meaning"], "leaf")
+        with closing(sqlite3.connect(self.db)) as conn, conn:
+            self.assertEqual(conn.execute("SELECT id, char, usage_rank FROM characters").fetchall(), before)

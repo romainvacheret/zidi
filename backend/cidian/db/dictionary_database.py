@@ -216,6 +216,25 @@ def ensure_usage_ranks(db_file: Path, char_file: Path) -> None:
         conn.close()
 
 
+def ensure_character_details(db_file: Path, char_file: Path) -> None:
+    """Retain source records for detail views, upgrading existing databases."""
+    conn = sqlite3.connect(db_file)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        if "source_json" in {row[1] for row in conn.execute("PRAGMA table_info(characters)")}:
+            return
+        conn.execute("ALTER TABLE characters ADD COLUMN source_json TEXT")
+        with char_file.open(encoding="utf-8") as source:
+            records = (json.loads(line) for line in source if line.strip())
+            conn.executemany(
+                "UPDATE characters SET source_json = ? WHERE char = ?",
+                ((json.dumps(record, ensure_ascii=False), record.get("char", "")) for record in records),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 class DictionaryBuilder:
     def __init__(
         self,
@@ -268,7 +287,8 @@ class DictionaryBuilder:
                 stroke_count INTEGER,
                 gloss TEXT,
                 pinyin_text TEXT NOT NULL DEFAULT '',
-                usage_rank INTEGER
+                usage_rank INTEGER,
+                source_json TEXT
             );
 
             CREATE TABLE character_search_terms (
@@ -338,8 +358,8 @@ class DictionaryBuilder:
         pinyin_text = self._collect_raw_pinyin_text(record)
         cursor = conn.execute(
             """
-            INSERT INTO characters (source_id, char, codepoint, stroke_count, gloss, pinyin_text, usage_rank)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO characters (source_id, char, codepoint, stroke_count, gloss, pinyin_text, usage_rank, source_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 record.get("_id"),
@@ -349,6 +369,7 @@ class DictionaryBuilder:
                 record.get("gloss"),
                 pinyin_text,
                 character_usage_rank(record),
+                json.dumps(record, ensure_ascii=False),
             ),
         )
         character_id = cursor.lastrowid
@@ -445,6 +466,17 @@ class DictionaryRepository:
 
     def close(self) -> None:
         self.conn.close()
+
+    def get_character(self, character: str) -> dict | None:
+        row = self.conn.execute(
+            "SELECT source_json, char, gloss, pinyin_text, codepoint, stroke_count "
+            "FROM characters WHERE char = ? ORDER BY id LIMIT 1", (character,),
+        ).fetchone()
+        if row is None:
+            return None
+        record = json.loads(row[0] or "{}")
+        return {**record, "char": row[1], "gloss": row[2], "pinyin_text": row[3],
+                "codepoint": row[4], "strokeCount": row[5]}
 
     def search_characters(self, query: str, limit: int = 50) -> list[tuple[str, str | None, str, str | None]]:
         """Search by exact character or by pinyin."""

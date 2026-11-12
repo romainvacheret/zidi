@@ -1,3 +1,4 @@
+from contextlib import closing
 import json
 from pathlib import Path
 import sqlite3
@@ -42,7 +43,7 @@ class UsageSortingTest(unittest.TestCase):
             self.assertEqual([row[0] for row in search(query, limit=1)], ["事"])
 
     def test_startup_backfills_legacy_database_and_preserves_entries(self):
-        with sqlite3.connect(self.db) as conn:
+        with closing(sqlite3.connect(self.db)) as conn, conn:
             before = conn.execute("SELECT id, char, gloss, pinyin_text FROM characters").fetchall()
             conn.execute("ALTER TABLE characters DROP COLUMN usage_rank")
         app = create_app(self.db, resources=self.root, frontend=self.root / "no-build")
@@ -51,19 +52,19 @@ class UsageSortingTest(unittest.TestCase):
                 response = client.get("/api/dictionary/search", params={"q": query, "mode": mode, "limit": 1})
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.json()["results"][0]["character"], "事")
-        with sqlite3.connect(self.db) as conn:
+        with closing(sqlite3.connect(self.db)) as conn, conn:
             self.assertEqual(conn.execute("SELECT id, char, gloss, pinyin_text FROM characters").fetchall(), before)
         modified = self.db.stat().st_mtime_ns
         ensure_usage_ranks(self.db, self.char_file)
         self.assertEqual(self.db.stat().st_mtime_ns, modified)
 
     def test_failed_backfill_rolls_back_schema_and_can_be_retried(self):
-        with sqlite3.connect(self.db) as conn:
+        with closing(sqlite3.connect(self.db)) as conn, conn:
             conn.execute("ALTER TABLE characters DROP COLUMN usage_rank")
         with self.assertRaises(FileNotFoundError):
             ensure_usage_ranks(self.db, self.root / "missing.jsonl")
-        with sqlite3.connect(self.db) as conn:
+        with closing(sqlite3.connect(self.db)) as conn, conn:
             self.assertNotIn("usage_rank", [r[1] for r in conn.execute("PRAGMA table_info(characters)")])
         ensure_usage_ranks(self.db, self.char_file)
-        with sqlite3.connect(self.db) as conn:
+        with closing(sqlite3.connect(self.db)) as conn, conn:
             self.assertEqual(conn.execute("SELECT usage_rank FROM characters WHERE char = '事'").fetchone()[0], 20)

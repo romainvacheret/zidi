@@ -47,6 +47,12 @@ To run the complete built application from one local URL, run `npm run build`, t
 
 The HTTP API and dictionary operations are separate from the React interface. A future pywebview host can load this same local URL and manage server startup without coupling dictionary logic to a desktop framework. Pywebview packaging and lifecycle management are deferred; PySide is no longer required to run the app.
 
+## Character details
+
+Select a dictionary result to inspect its readings, definition, stroke count, HSK level, usage ranks, origin notes, components, and common words where available. Desktop uses a side panel so search results stay accessible; smaller screens use a full-screen dialog. Close it with the close button or Escape; keyboard focus returns to the selected result.
+
+Choose **Open full details** for a dedicated entry with the complete common-word list, variants, and dictionary sources. Entry URLs such as `/#/dictionary/%E4%B8%96` can be bookmarked or opened directly. Browser Back and **Back to results** preserve the current search during the session. On first startup after this update, existing databases are upgraded from the bundled source records automatically; future startups reuse them.
+
 ## Project documentation
 
 Planning and work tracking live under [docs/](docs/plans/revival.md). See the [work tracking conventions](docs/agents/issue-tracker.md) and [domain documentation conventions](docs/agents/domain.md).

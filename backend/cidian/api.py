@@ -6,13 +6,13 @@ import os
 from pathlib import Path
 import tempfile
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Path as PathParameter, Query
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .db import DictionaryBuilder
-from .db.dictionary_database import ensure_usage_ranks
-from .dictionary import SearchMode, search_dictionary
+from .db.dictionary_database import ensure_character_details, ensure_usage_ranks
+from .dictionary import SearchMode, character_details, search_dictionary
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 
@@ -27,6 +27,32 @@ class DictionaryEntry(BaseModel):
 class SearchResponse(BaseModel):
     results: list[DictionaryEntry]
     limit: int
+
+
+class CharacterComponent(BaseModel):
+    character: str
+    roles: list[str]
+    hint: str | None
+
+
+class CharacterWord(BaseModel):
+    word: str
+    traditional: str | None
+    gloss: str | None
+
+
+class CharacterDetails(DictionaryEntry):
+    stroke_count: int | None
+    original_meaning: str | None
+    hint: str | None
+    hsk_level: int | None
+    movie_rank: int | None
+    book_rank: int | None
+    readings: list[str]
+    components: list[CharacterComponent]
+    words: list[CharacterWord]
+    variants: list[str]
+    sources: list[str]
 
 
 def create_app(db_file: Path | None = None, *, resources: Path | None = None,
@@ -50,6 +76,7 @@ def create_app(db_file: Path | None = None, *, resources: Path | None = None,
                 ).create_database()
                 pending.replace(database)
         ensure_usage_ranks(database, resources / "dictionary_char_2025-12-27.jsonl")
+        ensure_character_details(database, resources / "dictionary_char_2025-12-27.jsonl")
         yield
 
     app = FastAPI(title="Zidi dictionary", lifespan=lifespan)
@@ -59,6 +86,13 @@ def create_app(db_file: Path | None = None, *, resources: Path | None = None,
                mode: SearchMode = "character",
                limit: int = Query(default=50, ge=1, le=100)):
         return {"results": search_dictionary(database, q.strip(), mode, limit), "limit": limit}
+
+    @app.get("/api/dictionary/characters/{character}", response_model=CharacterDetails)
+    def details(character: str = PathParameter(min_length=1, max_length=1)):
+        result = character_details(database, character)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Character not found")
+        return result
 
     frontend = frontend if frontend is not None else BACKEND_ROOT.parent / "dist"
     if frontend.is_dir():
