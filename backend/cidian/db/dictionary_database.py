@@ -187,6 +187,35 @@ def translation_terms_from_text(text: str) -> list[str]:
     return unique_terms(terms)
 
 
+def character_usage_rank(record: dict) -> int | None:
+    """Prefer subtitle character usage, falling back to book character usage."""
+    statistics = record.get("statistics") or {}
+    for key in ("movieCharRank", "bookCharRank"):
+        rank = statistics.get(key)
+        if isinstance(rank, int) and not isinstance(rank, bool) and rank > 0:
+            return rank
+    return None
+
+
+def ensure_usage_ranks(db_file: Path, char_file: Path) -> None:
+    """Backfill older databases atomically without rebuilding dictionary tables."""
+    conn = sqlite3.connect(db_file)
+    try:
+        if "usage_rank" in {row[1] for row in conn.execute("PRAGMA table_info(characters)")}:
+            return
+        conn.execute("BEGIN IMMEDIATE")
+        conn.execute("ALTER TABLE characters ADD COLUMN usage_rank INTEGER")
+        with char_file.open(encoding="utf-8") as source:
+            records = (json.loads(line) for line in source if line.strip())
+            conn.executemany(
+                "UPDATE characters SET usage_rank = ? WHERE char = ?",
+                ((character_usage_rank(record), record.get("char", "")) for record in records),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 class DictionaryBuilder:
     def __init__(
         self,
@@ -238,7 +267,8 @@ class DictionaryBuilder:
                 codepoint TEXT,
                 stroke_count INTEGER,
                 gloss TEXT,
-                pinyin_text TEXT NOT NULL DEFAULT ''
+                pinyin_text TEXT NOT NULL DEFAULT '',
+                usage_rank INTEGER
             );
 
             CREATE TABLE character_search_terms (
@@ -308,8 +338,8 @@ class DictionaryBuilder:
         pinyin_text = self._collect_raw_pinyin_text(record)
         cursor = conn.execute(
             """
-            INSERT INTO characters (source_id, char, codepoint, stroke_count, gloss, pinyin_text)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO characters (source_id, char, codepoint, stroke_count, gloss, pinyin_text, usage_rank)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 record.get("_id"),
@@ -318,6 +348,7 @@ class DictionaryBuilder:
                 record.get("strokeCount"),
                 record.get("gloss"),
                 pinyin_text,
+                character_usage_rank(record),
             ),
         )
         character_id = cursor.lastrowid
@@ -427,7 +458,7 @@ class DictionaryRepository:
                 SELECT DISTINCT c.char, c.gloss, c.pinyin_text, c.codepoint
                 FROM characters AS c
                 WHERE c.char = ?
-                ORDER BY c.char
+                ORDER BY c.usage_rank IS NULL, c.usage_rank, c.char
                 LIMIT ?
                 """,
                 (query, limit),
@@ -446,7 +477,7 @@ class DictionaryRepository:
             LEFT JOIN character_search_terms AS t ON t.character_id = c.id
             WHERE t.term IN ({placeholders})
                OR c.char = ?
-            ORDER BY c.char
+            ORDER BY c.usage_rank IS NULL, c.usage_rank, c.char
             LIMIT ?
             """,
             (*candidate_terms, query, limit),
@@ -467,90 +498,31 @@ class DictionaryRepository:
         if not candidate_terms:
             return []
 
-        character_rows = self._search_character_rows_by_translation_terms(candidate_terms, limit)
-        if len(character_rows) >= limit:
-            return character_rows[:limit]
-
-        word_rows = self._search_character_rows_from_words_by_translation_terms(
-            candidate_terms,
-            limit=limit,
-        )
-        combined: list[tuple[str, str | None, str, str | None]] = []
-        seen: set[str] = set()
-        for row in character_rows + word_rows:
-            character = row[0]
-            if character in seen:
-                continue
-            seen.add(character)
-            combined.append(row)
-            if len(combined) >= limit:
-                break
-        return combined
-
-    def _search_character_rows_by_translation_terms(
-        self,
-        candidate_terms: list[str],
-        limit: int,
-    ) -> list[tuple[str, str | None, str, str | None]]:
         placeholders = ",".join("?" for _ in candidate_terms)
-        cursor = self.conn.execute(
+        # Collect all matching words before limiting characters: an alphabetical
+        # word cutoff could hide the most common character from the final list.
+        word_rows = self.conn.execute(
             f"""
-            SELECT DISTINCT c.char, c.gloss, c.pinyin_text, c.codepoint
-            FROM characters AS c
-            JOIN character_translation_terms AS t ON t.character_id = c.id
-            WHERE t.term IN ({placeholders})
-            ORDER BY c.char
-            LIMIT ?
-            """,
-            (*candidate_terms, limit),
-        )
-        return cursor.fetchall()
-
-    def _search_character_rows_from_words_by_translation_terms(
-        self,
-        candidate_terms: list[str],
-        *,
-        limit: int,
-    ) -> list[tuple[str, str | None, str, str | None]]:
-        placeholders = ",".join("?" for _ in candidate_terms)
-        cursor = self.conn.execute(
-            f"""
-            SELECT DISTINCT w.simp, w.trad
-            FROM words AS w
+            SELECT w.simp, w.trad FROM words AS w
             JOIN word_translation_terms AS t ON t.word_id = w.id
             WHERE t.term IN ({placeholders})
-            ORDER BY w.simp
-            LIMIT ?
-            """,
-            (*candidate_terms, limit),
-        )
-        matched_words = cursor.fetchall()
-        if not matched_words:
-            return []
-
-        characters: list[str] = []
-        seen_characters: set[str] = set()
-        for simp, trad in matched_words:
-            for text in (simp, trad or ""):
-                for character in text:
-                    if character in seen_characters:
-                        continue
-                    seen_characters.add(character)
-                    characters.append(character)
-
-        if not characters:
-            return []
-
-        placeholders = ",".join("?" for _ in characters)
+            """, candidate_terms,
+        ).fetchall()
+        characters = sorted({character for row in word_rows for text in row
+                             for character in (text or "")})
+        character_placeholders = ",".join("?" for _ in characters) or "NULL"
         cursor = self.conn.execute(
             f"""
             SELECT DISTINCT c.char, c.gloss, c.pinyin_text, c.codepoint
             FROM characters AS c
-            WHERE c.char IN ({placeholders})
-            ORDER BY c.char
+            WHERE c.id IN (
+                SELECT character_id FROM character_translation_terms
+                WHERE term IN ({placeholders})
+            ) OR c.char IN ({character_placeholders})
+            ORDER BY c.usage_rank IS NULL, c.usage_rank, c.char
             LIMIT ?
             """,
-            (*characters, limit),
+            (*candidate_terms, *characters, limit),
         )
         return cursor.fetchall()
 

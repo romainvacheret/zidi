@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .db import DictionaryBuilder
+from .db.dictionary_database import ensure_usage_ranks
 from .dictionary import SearchMode, search_dictionary
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
@@ -48,6 +49,7 @@ def create_app(db_file: Path | None = None, *, resources: Path | None = None,
                     resources / "dictionary_word_2025-12-27.jsonl",
                 ).create_database()
                 pending.replace(database)
+        ensure_usage_ranks(database, resources / "dictionary_char_2025-12-27.jsonl")
         yield
 
     app = FastAPI(title="Zidi dictionary", lifespan=lifespan)
