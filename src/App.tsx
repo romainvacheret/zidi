@@ -1,28 +1,43 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import './App.css';
-import hsk1 from './hsk1.json';
-import hsk2 from './hsk2.json';
-import hsk3 from './hsk3.json';
-import { toGraph } from './graph';
+import { vocabularyGraph, vocabularyNodes } from './vocabulary';
+import { graphTargetFromHash } from './navigation';
+import type { GraphNode } from './types';
 import CustomSideBar from './components/sidebar';
 import GraphView from './components/GraphView';
 import DictionaryView from './components/DictionaryView';
 
-const graph = toGraph([...hsk1, ...hsk2, ...hsk3]);
-
 function App() {
   const [tab, setTab] = useState<'dictionary' | 'graph'>(() =>
     window.location.hash.startsWith('#/dictionary') ? 'dictionary' : 'graph');
+  const [selection, setSelection] = useState<{ id: string } | null>(() => {
+    const id = graphTargetFromHash();
+    return id ? { id } : null;
+  });
+  const [additionalNodes, setAdditionalNodes] = useState<GraphNode[]>(() =>
+    selection && !vocabularyNodes.has(selection.id) ? [{ id: selection.id, entries: [] }] : []);
+  const graph = useMemo(() => additionalNodes.length
+    ? { nodes: [...vocabularyGraph.nodes, ...additionalNodes], links: vocabularyGraph.links }
+    : vocabularyGraph, [additionalNodes]);
+  // A new request also recenters a node that was selected before panning away.
+  const selectNode = useCallback((id: string) => {
+    if (!vocabularyNodes.has(id)) {
+      setAdditionalNodes(nodes => nodes.some(node => node.id === id) ? nodes : [...nodes, { id, entries: [] }]);
+    }
+    setSelection({ id });
+  }, []);
   useEffect(() => {
     const navigate = () => {
       if (window.location.hash.startsWith('#/dictionary')) setTab('dictionary');
+      else if (window.location.hash.startsWith('#/graph')) {
+        setTab('graph');
+        const id = graphTargetFromHash();
+        if (id) selectNode(id);
+      }
     };
     window.addEventListener('hashchange', navigate);
     return () => window.removeEventListener('hashchange', navigate);
-  }, []);
-  const [selection, setSelection] = useState<{ id: string } | null>(null);
-  // A new request also recenters a node that was selected before panning away.
-  const selectNode = useCallback((id: string) => setSelection({ id }), []);
+  }, [selectNode]);
 
   return (
     <div className="app-shell">
@@ -59,9 +74,10 @@ function App() {
             nodes={graph.nodes}
             selectedId={selection?.id}
             onSelect={selectNode}
+            supplementalCount={additionalNodes.length}
           />
           <main className="graph-main" aria-label="Word and character graph">
-            <GraphView graph={graph} selection={selection} onSelect={selectNode} />
+            <GraphView graph={graph} selection={selection} onSelect={selectNode} active={tab === 'graph'} />
           </main>
         </div>
       </section>

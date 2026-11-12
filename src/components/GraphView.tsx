@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, {
   type ForceGraphMethods,
   type GraphData,
@@ -6,11 +6,14 @@ import ForceGraph2D, {
 } from 'react-force-graph-2d';
 import type { Graph, GraphNode } from '../types';
 import { useElementSize } from '../hooks/useElementSize';
+import GraphNodePreview from './GraphNodePreview';
+import { vocabularyNodes } from '../vocabulary';
 
 interface GraphViewProps {
   graph: Graph;
   selection: { id: string } | null;
   onSelect(id: string): void;
+  active?: boolean;
 }
 
 type LayoutNode = NodeObject<GraphNode>;
@@ -20,10 +23,12 @@ function labelBounds(node: LayoutNode, context: CanvasRenderingContext2D) {
   return { width: context.measureText(node.id).width + 8, height: 20 };
 }
 
-export default function GraphView({ graph, selection, onSelect }: GraphViewProps) {
+export default function GraphView({ graph, selection, onSelect, active = true }: GraphViewProps) {
   const [containerRef, size] = useElementSize();
   const rendererRef = useRef<ForceGraphMethods<LayoutNode> | undefined>(undefined);
   const pendingFocus = useRef(false);
+  const previewRef = useRef<HTMLElement>(null);
+  const [dismissedSelection, setDismissedSelection] = useState<typeof selection>(null);
 
   // d3 adds coordinates and replaces link IDs with node references. Give it
   // private copies so those mutations cannot leak into vocabulary data or UI.
@@ -34,17 +39,46 @@ export default function GraphView({ graph, selection, onSelect }: GraphViewProps
   const nodesById = useMemo(() => new Map(layout.nodes.map(node => [node.id, node])), [layout]);
 
   const focusSelection = useCallback(() => {
-    if (!pendingFocus.current || !selection || !rendererRef.current) return;
+    if (!pendingFocus.current || !selection || !rendererRef.current || !active || size.width <= 0 || size.height <= 0) return;
     const node = nodesById.get(selection.id);
     if (!node || !Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
     rendererRef.current.centerAt(node.x, node.y, 300);
     pendingFocus.current = false;
-  }, [nodesById, selection]);
+  }, [nodesById, selection, active, size.width, size.height]);
 
   useEffect(() => {
     pendingFocus.current = selection !== null;
     focusSelection();
   }, [selection, focusSelection]);
+
+  const selectedNode = selection ? nodesById.get(selection.id) : undefined;
+  const showPreview = active && selectedNode && dismissedSelection !== selection;
+  const positionPreview = useCallback(() => {
+    const element = previewRef.current;
+    if (!element || !selectedNode || !rendererRef.current || !Number.isFinite(selectedNode.x) || !Number.isFinite(selectedNode.y)) return;
+    const point = rendererRef.current.graph2ScreenCoords(selectedNode.x!, selectedNode.y!);
+    const visible = point.x >= 0 && point.x <= size.width && point.y >= 0 && point.y <= size.height;
+    element.style.visibility = visible ? 'visible' : 'hidden';
+    const left = Math.max(8, Math.min(point.x - element.offsetWidth / 2, size.width - element.offsetWidth - 8));
+    const top = Math.max(8, Math.min(point.y + 22, size.height - element.offsetHeight - 8));
+    element.style.transform = `translate(${left}px, ${top}px)`;
+  }, [selectedNode, size.width, size.height]);
+
+  useEffect(() => {
+    if (!showPreview || !previewRef.current) return;
+    positionPreview();
+    const observer = new ResizeObserver(positionPreview);
+    observer.observe(previewRef.current);
+    return () => observer.disconnect();
+  }, [positionPreview, showPreview]);
+  useEffect(() => {
+    if (!showPreview) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDismissedSelection(selection);
+    };
+    window.addEventListener('keydown', dismiss);
+    return () => window.removeEventListener('keydown', dismiss);
+  }, [showPreview, selection]);
 
   const drawNode = useCallback((node: LayoutNode, context: CanvasRenderingContext2D) => {
     if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
@@ -84,10 +118,19 @@ export default function GraphView({ graph, selection, onSelect }: GraphViewProps
           height={size.height}
           nodeCanvasObject={drawNode}
           nodePointerAreaPaint={paintPointerArea}
+          nodeLabel={() => ''}
           onNodeClick={node => onSelect(node.id)}
+          onBackgroundClick={() => setDismissedSelection(selection)}
           onEngineTick={focusSelection}
+          onRenderFramePost={positionPreview}
         />
       )}
+      {showPreview && <aside ref={previewRef} className="graph-node-preview" aria-label="Selected graph entry">
+        <button type="button" className="graph-preview-close" aria-label="Close graph tooltip"
+          onClick={() => setDismissedSelection(selection)}>×</button>
+        <GraphNodePreview key={selectedNode.id} node={selectedNode} />
+        {!vocabularyNodes.has(selectedNode.id) && <p className="graph-preview-note">Outside HSK 1–3 · shown as a standalone character</p>}
+      </aside>}
     </div>
   );
 }

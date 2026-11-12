@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { characterHref, getCharacterDetails, type CharacterDetails as Details } from '../dictionary';
+import { graphHref } from '../navigation';
 
 interface Props {
   character: string;
@@ -117,6 +118,7 @@ export default function CharacterDetails({ character, full = false, onClose, ret
       <div><span className="eyebrow">{full ? 'Dictionary entry' : 'Quick look'}</span>
         <Heading ref={title} tabIndex={-1} id="character-detail-title">{character} <span>Character details</span></Heading>
       </div>
+      {full && data && <a className="secondary-button graph-entry-link" href={graphHref(character)}>View in graph <span aria-hidden="true">↗</span></a>}
       {!full && <button autoFocus type="button" className="icon-button" onClick={onClose} aria-label="Close character details">×</button>}
     </header>
     {!data && !error && <p role="status" className="detail-loading">Loading character details…</p>}

@@ -53,6 +53,14 @@ Select a dictionary result to inspect its readings, definition, stroke count, HS
 
 Choose **Open full details** for a dedicated entry with the complete common-word list, variants, and dictionary sources. Entry URLs such as `/#/dictionary/%E4%B8%96` can be bookmarked or opened directly. Browser Back and **Back to results** preserve the current search during the session. On first startup after this update, existing databases are upgraded from the bundled source records automatically; future startups reuse them.
 
+## Graph exploration
+
+Click a graph node or select it in the sidebar to see a small, clickable preview with pinyin and a short English meaning. It follows the node while panning and zooming. Click the preview to open the entry; close it with ×, Escape, or a canvas-background click. Selecting the node again reopens the preview and recenters it.
+
+**View in graph** on an entry opens the Graph tab centered on that character or word. Graph targets use bookmarkable URLs such as `/#/graph/%E4%B8%96`. Dictionary characters outside the bundled HSK graph appear as standalone nodes for the current session; existing vocabulary relationships stay intact.
+
+Word entries currently use bundled HSK readings and meanings and link to their constituent character pages. Character nodes without HSK metadata load their preview from the dictionary API. Word previews and the graph remain usable when the backend is offline.
+
 ## Project documentation
 
 Planning and work tracking live under [docs/](docs/plans/revival.md). See the [work tracking conventions](docs/agents/issue-tracker.md) and [domain documentation conventions](docs/agents/domain.md).

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { searchDictionary, type SearchMode, type SearchResponse } from '../dictionary';
 import CharacterDetails from './CharacterDetails';
+import WordDetails from './WordDetails';
 import { useDictionaryRoute } from '../hooks/useDictionaryRoute';
 
 export default function DictionaryView({ active = true }: { active?: boolean }) {
@@ -114,8 +115,10 @@ export default function DictionaryView({ active = true }: { active?: boolean }) 
         onClose={() => setSelectedCharacter(null)} />}
       </div>
       </div>
-      {fullCharacter && <CharacterDetails key={`full-${fullCharacter}`} character={fullCharacter} full
-        onClose={() => { window.location.hash = '/dictionary'; }} />}
+      {fullCharacter && (Array.from(fullCharacter).length > 1
+        ? <WordDetails key={fullCharacter} word={fullCharacter} />
+        : <CharacterDetails key={`full-${fullCharacter}`} character={fullCharacter} full
+          onClose={() => { window.location.hash = '/dictionary'; }} />)}
     </main>
   );
 }
