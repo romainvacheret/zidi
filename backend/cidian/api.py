@@ -120,15 +120,17 @@ def create_app(db_file: Path | None = None, *, resources: Path | None = None,
     @app.get("/api/graph/neighborhood", response_model=GraphVocabularyResponse)
     def neighborhood(target: str = Query(min_length=1, max_length=200),
                      limit: int = Query(default=50, ge=1, le=300),
-                     levels: list[Annotated[int, Query(ge=1, le=7)]] = Query(default=[], max_length=7)):
-        return graph_neighborhood(database, target, limit, levels)
+                     levels: list[Annotated[int, Query(ge=1, le=7)]] = Query(default=[], max_length=7),
+                     preserve: list[str] = Query(default=[], max_length=500)):
+        return graph_neighborhood(database, target, limit, levels, preserve)
 
     @app.get("/api/graph/vocabulary", response_model=GraphVocabularyResponse)
     def vocabulary(levels: list[Annotated[int, Query(ge=1, le=7)]] = Query(default=[1], max_length=7),
                    limit: int = Query(default=200, ge=1, le=300),
                    character: str | None = Query(default=None, min_length=1, max_length=1),
-                   exclude: list[str] = Query(default=[], max_length=500)):
-        return graph_vocabulary(database, levels, limit, character, exclude)
+                   exclude: list[str] = Query(default=[], max_length=500),
+                   preserve: list[str] = Query(default=[], max_length=500)):
+        return graph_vocabulary(database, levels, limit, character, exclude, preserve)
 
     @app.get("/api/dictionary/search", response_model=SearchResponse)
     def search(q: str = Query(min_length=1, max_length=200),

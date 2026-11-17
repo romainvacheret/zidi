@@ -11,18 +11,20 @@ export interface GraphVocabularyResponse {
   allowed_characters?: string[] | null;
 }
 
-export async function getGraphNeighborhood(target: string, limit: number, signal: AbortSignal, levels: readonly number[]): Promise<GraphVocabularyResponse> {
+export async function getGraphNeighborhood(target: string, limit: number, signal: AbortSignal, levels: readonly number[], preserve: readonly string[] = []): Promise<GraphVocabularyResponse> {
   const params = new URLSearchParams({ target, limit: String(limit) });
   levels.forEach(level => params.append('levels', String(level)));
+  preserve.forEach(id => params.append('preserve', id));
   const response = await fetch(`/api/graph/neighborhood?${params}`, { signal });
   if (!response.ok) throw new Error('Could not load related entries. Please try again.');
   return response.json();
 }
 
 export async function getGraphVocabulary(levels: readonly number[], limit: number, signal: AbortSignal,
-  character?: string, exclude: readonly string[] = []): Promise<GraphVocabularyResponse> {
+  character?: string, exclude: readonly string[] = [], preserve: readonly string[] = []): Promise<GraphVocabularyResponse> {
   const params = new URLSearchParams({ limit: String(limit) });
   levels.forEach(level => params.append('levels', String(level)));
+  preserve.forEach(id => params.append('preserve', id));
   if (character) params.set('character', character);
   exclude.forEach(id => params.append('exclude', id));
   const response = await fetch(`/api/graph/vocabulary?${params}`, { signal });

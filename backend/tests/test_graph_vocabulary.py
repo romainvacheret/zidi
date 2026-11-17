@@ -103,3 +103,49 @@ class GraphVocabularyTests(unittest.TestCase):
         self.assertIn('爱心', [entry['text'] for entry in result['entries']])
         self.assertIn('心', result['allowed_characters'])
         self.assertEqual(graph_neighborhood(self.database, '爱心', 20, [])['entries'], [])
+
+    def test_adding_level_does_not_displace_existing_level_words(self):
+        with closing(sqlite3.connect(self.database)) as connection, connection:
+            connection.execute('DELETE FROM words')
+            for expression, level, rank in [('出来', 1, 1), ('出发', 1, 3), ('出门', 2, 2)]:
+                connection.execute('INSERT INTO words(simp, source_json, usage_rank) VALUES (?, ?, ?)',
+                                   (expression, json.dumps({'simp': expression, 'statistics': {'hskLevel': level}}), rank))
+        before = graph_vocabulary(self.database, [1], 2)
+        after = graph_vocabulary(self.database, [1, 2], 2)
+        self.assertEqual({entry['text'] for entry in before['entries']}, {'出来', '出发'})
+        self.assertTrue({entry['text'] for entry in before['entries']} <= {entry['text'] for entry in after['entries']})
+        self.assertIn('出门', {entry['text'] for entry in after['entries']})
+
+    def test_existing_words_take_priority_when_adding_a_level_hits_node_ceiling(self):
+        with closing(sqlite3.connect(self.database)) as connection, connection:
+            connection.execute('DELETE FROM words')
+            for level in [1, 2]:
+                for index in range(200):
+                    expression = ('甲' if level == 1 else '乙') + chr(0x5000 + index + level * 250)
+                    connection.execute('INSERT INTO words(simp, source_json, usage_rank) VALUES (?, ?, ?)',
+                                       (expression, json.dumps({'simp': expression, 'statistics': {'hskLevel': level}}), index + level * 300))
+        before = graph_vocabulary(self.database, [2], 200)
+        retained = [entry['text'] for entry in before['entries']]
+        after = graph_vocabulary(self.database, [1, 2], 200, preserve=retained)
+        self.assertTrue(set(retained) <= {entry['text'] for entry in after['entries']})
+        self.assertTrue(after['has_more'])
+        removed = graph_vocabulary(self.database, [1], 200, preserve=retained)
+        self.assertFalse(set(retained) & {entry['text'] for entry in removed['entries']})
+
+    def test_neighborhood_limits_apply_per_level(self):
+        from cidian.vocabulary import graph_neighborhood
+        before = graph_neighborhood(self.database, '爱', 1, [1])
+        retained = [entry['text'] for entry in before['entries']]
+        after = graph_neighborhood(self.database, '爱', 1, [1, 2], preserve=retained)
+        words = {entry['text'] for entry in after['entries']}
+        self.assertTrue(set(retained) <= words)
+        self.assertIn('爱心', words)
+
+
+    def test_manually_expanded_words_survive_level_additions(self):
+        from cidian.vocabulary import graph_neighborhood
+        retained = ['爱', '爱好', '爱人']
+        result = graph_vocabulary(self.database, [1, 2], 1, preserve=retained)
+        self.assertTrue(set(retained) <= {entry['text'] for entry in result['entries']})
+        focused = graph_neighborhood(self.database, '爱', 1, [1, 2], preserve=retained)
+        self.assertTrue(set(retained) <= {entry['text'] for entry in focused['entries']})

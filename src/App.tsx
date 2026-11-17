@@ -28,6 +28,7 @@ function App() {
   const [expanding, setExpanding] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const loadedScope = useRef<{ target: string | null; limit: number } | null>(null);
   const expansion = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -37,11 +38,16 @@ function App() {
     setLoading(true);
     setError('');
     setNotice('');
+    const target = neighborhood?.id || null;
+    const preserve = loadedScope.current?.target === target && loadedScope.current?.limit === wordLimit
+      ? currentGraph.current.nodes.filter(node => node.entries.length).map(node => node.id) : [];
     const request = levels.length === 0
       ? Promise.resolve({ entries: [], has_more: false, allowed_characters: [] })
       : neighborhood
-      ? getGraphNeighborhood(neighborhood.id, wordLimit, controller.signal, levels)
-      : getGraphVocabulary(levels, wordLimit, controller.signal);
+      ? getGraphNeighborhood(neighborhood.id, wordLimit, controller.signal, levels, preserve)
+      : preserve.length
+        ? getGraphVocabulary(levels, wordLimit, controller.signal, undefined, [], preserve)
+        : getGraphVocabulary(levels, wordLimit, controller.signal);
     request.then(result => {
       if (controller.signal.aborted) return;
       const id = neighborhood?.id;
@@ -51,11 +57,12 @@ function App() {
       const selected = showFocus ? mergeGraph({ nodes: [], links: [] }, [], [id]) : { nodes: [], links: [] };
       const next = filterGraphCharacters(mergeGraph(selected, result.entries), result.allowed_characters);
       setGraph(next);
+      loadedScope.current = { target, limit: wordLimit };
       vocabularyNodes.clear();
       for (const node of next.nodes) if (node.entries.length) vocabularyNodes.set(node.id, node);
       setNotice(levels.length === 0 ? 'Select at least one HSK level.' : neighborhood
-        ? `Words connected to ${neighborhood.id} through shared characters.${!next.nodes.some(node => node.id === neighborhood.id) ? ' Focus is outside the selected levels.' : ''}${result.has_more ? ' Showing the closest subset.' : ''}`
-        : result.has_more ? 'Showing a subset, ordered by usage frequency.' : 'All matching words loaded.');
+        ? `Words connected to ${neighborhood.id} through shared characters.${!next.nodes.some(node => node.id === neighborhood.id) ? ' Focus is outside the selected levels.' : ''}${result.has_more ? ' Showing a subset within the per-level word limit and node ceiling.' : ''}`
+        : result.has_more ? 'Showing a subset within the per-level word limit and node ceiling.' : 'All matching words loaded.');
     }).catch((reason: unknown) => {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not load graph.');
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
@@ -185,7 +192,7 @@ function App() {
               {neighborhood && <button type="button" onClick={() => openTab('graph')}>Back to HSK 1</button>}
               {!neighborhood && selection && /^\p{Script=Han}$/u.test(selection.id) && <button type="button"
                 disabled={!levels.length || loading || expanding || graph.nodes.length >= MAX_GRAPH_NODES}
-                onClick={expandCharacter}>{expanding ? 'Loading related words…' : `Expand ${selection.id} (+20 words)`}</button>}
+                onClick={expandCharacter}>{expanding ? 'Loading related words…' : `Expand ${selection.id} (+20 per level)`}</button>}
             </div>
             <GraphView graph={graph} selection={selection} onSelect={selectNode} active={tab === 'graph'} />
           </main>

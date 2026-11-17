@@ -251,7 +251,7 @@ test('opens a bookmarked character neighborhood without unrelated HSK nodes', as
   await screen.findByRole('button', { name: '𠮷' });
   expect(screen.getByRole('button', { name: '𠮷' })).toHaveAttribute('aria-pressed', 'true');
   expect(screen.queryByRole('button', { name: '爱' })).not.toBeInTheDocument();
-  expect(getGraphNeighborhood).toHaveBeenCalledWith('𠮷', 50, expect.any(AbortSignal), [1]);
+  expect(getGraphNeighborhood).toHaveBeenCalledWith('𠮷', 50, expect.any(AbortSignal), [1], []);
   expect(centerAt).not.toHaveBeenCalled();
   const node = rendererProps().graphData!.nodes.find(node => node.id === '𠮷')!;
   node.x = 0; node.y = 42;
@@ -324,8 +324,8 @@ test('requests bounded vocabulary when level and word limit change', async () =>
   await screen.findByRole('button', { name: '爱' });
   expect(getGraphVocabulary).toHaveBeenLastCalledWith([1], 200, expect.any(AbortSignal));
   await user.click(screen.getByRole('checkbox', { name: 'HSK 3' }));
-  await waitFor(() => expect(getGraphVocabulary).toHaveBeenLastCalledWith([1, 3], 200, expect.any(AbortSignal)));
-  await user.selectOptions(screen.getByLabelText('Word limit'), '50');
+  await waitFor(() => expect(getGraphVocabulary).toHaveBeenLastCalledWith([1, 3], 200, expect.any(AbortSignal), undefined, [], expect.arrayContaining(['爱', '爸爸', '女儿'])));
+  await user.selectOptions(screen.getByLabelText('Words per level'), '50');
   await waitFor(() => expect(getGraphVocabulary).toHaveBeenLastCalledWith([1, 3], 50, expect.any(AbortSignal)));
 });
 
@@ -336,7 +336,7 @@ test('expands a selected character in batches, retaining existing nodes', async 
   vi.mocked(getGraphVocabulary).mockResolvedValueOnce({
     entries: [{ text: '爱好', pronunciation: 'ài hào', description: 'hobby' }], has_more: false,
   });
-  await user.click(screen.getByRole('button', { name: 'Expand 爱 (+20 words)' }));
+  await user.click(screen.getByRole('button', { name: 'Expand 爱 (+20 per level)' }));
   expect(await screen.findByRole('button', { name: '爱好' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: '爸爸' })).toBeInTheDocument();
   expect(getGraphVocabulary).toHaveBeenLastCalledWith([1], 20, expect.any(AbortSignal), '爱', expect.arrayContaining(['爱', '爸爸']));
@@ -370,13 +370,13 @@ test('focuses a selected word and resets to HSK 1 from the Graph tab', async () 
   await user.click(await screen.findByRole('button', { name: '爸爸' }));
   await user.click(screen.getByRole('button', { name: 'Focus on 爸爸' }));
   await waitFor(() => expect(screen.queryByRole('button', { name: '爱' })).not.toBeInTheDocument());
-  expect(getGraphNeighborhood).toHaveBeenLastCalledWith('爸爸', 50, expect.any(AbortSignal), [1]);
+  expect(getGraphNeighborhood).toHaveBeenLastCalledWith('爸爸', 50, expect.any(AbortSignal), [1], []);
   expect(screen.getByText('Shared characters · selected levels')).toBeInTheDocument();
   expect(screen.getByRole('checkbox', { name: 'HSK 1' })).toBeChecked();
   await user.click(screen.getByRole('tab', { name: 'Graph' }));
   expect(await screen.findByRole('button', { name: '爱' })).toBeInTheDocument();
   expect(screen.getByRole('checkbox', { name: 'HSK 1' })).toBeChecked();
-  expect(screen.getByLabelText('Word limit')).toHaveValue('200');
+  expect(screen.getByLabelText('Words per level')).toHaveValue('200');
 });
 
 
@@ -396,7 +396,7 @@ test('filters the canvas by several selected levels in a focused graph', async (
     allowed_characters: ['爸'], has_more: false,
   });
   await user.click(screen.getByRole('checkbox', { name: 'HSK 3' }));
-  await waitFor(() => expect(getGraphNeighborhood).toHaveBeenLastCalledWith('爸爸', 50, expect.any(AbortSignal), [1, 3]));
+  await waitFor(() => expect(getGraphNeighborhood).toHaveBeenLastCalledWith('爸爸', 50, expect.any(AbortSignal), [1, 3], ['爸爸']));
   expect(await screen.findByRole('button', { name: '爸' })).toBeInTheDocument();
   await user.click(screen.getByRole('checkbox', { name: 'HSK 1' }));
   await user.click(screen.getByRole('checkbox', { name: 'HSK 3' }));
@@ -423,4 +423,16 @@ test('keeps the visible layout while loading and preserves nodes and camera on i
   expect(anchor).toMatchObject({ x: 180, y: 240, fx: 180, fy: 240 });
   expect(after.nodes.some(node => node.id === '爱好')).toBe(true);
   expect(centerAt).not.toHaveBeenCalled();
+});
+
+test('retains displayed words when adding levels but starts a fresh sample when changing the limit', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByRole('button', { name: '爸爸' });
+  await user.click(screen.getByRole('checkbox', { name: 'HSK 2' }));
+  await waitFor(() => expect(getGraphVocabulary).toHaveBeenLastCalledWith(
+    [1, 2], 200, expect.any(AbortSignal), undefined, [], expect.arrayContaining(['爱', '爸爸', '女儿'])));
+  expect(screen.getByRole('button', { name: '爸爸' })).toBeInTheDocument();
+  await user.selectOptions(screen.getByLabelText('Words per level'), '50');
+  await waitFor(() => expect(getGraphVocabulary).toHaveBeenLastCalledWith([1, 2], 50, expect.any(AbortSignal)));
 });

@@ -40,7 +40,7 @@ function CustomSideBar({ nodes, selectedId, onSelect, neighborhood, levels, word
               HSK {level === 7 ? '7–9' : level}
             </label>)}
           </fieldset>
-          <label>{neighborhood ? 'Related word limit' : 'Word limit'}<select value={wordLimit} onChange={event => onWordLimitChange(Number(event.target.value))}>
+          <label>{neighborhood ? 'Related words per level' : 'Words per level'}<select value={wordLimit} onChange={event => onWordLimitChange(Number(event.target.value))}>
             {[50, 100, 200, 300].map(value => <option key={value} value={value}>{value}</option>)}
           </select></label>
         </div>
