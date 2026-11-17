@@ -37,7 +37,6 @@ function App() {
     setLoading(true);
     setError('');
     setNotice('');
-    setGraph({ nodes: [], links: [] });
     const request = levels.length === 0
       ? Promise.resolve({ entries: [], has_more: false, allowed_characters: [] })
       : neighborhood

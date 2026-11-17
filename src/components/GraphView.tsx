@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, {
   type ForceGraphMethods,
   type GraphData,
-  type NodeObject,
 } from 'react-force-graph-2d';
 import type { Graph, GraphNode } from '../types';
 import { useElementSize } from '../hooks/useElementSize';
 import GraphNodePreview from './GraphNodePreview';
+import { createGraphLayout, pinNode, type LayoutNode } from '../graphLayout';
 
 interface GraphViewProps {
   graph: Graph;
@@ -14,8 +14,6 @@ interface GraphViewProps {
   onSelect(id: string): void;
   active?: boolean;
 }
-
-type LayoutNode = NodeObject<GraphNode>;
 
 function labelBounds(node: LayoutNode, context: CanvasRenderingContext2D) {
   context.font = '12px sans-serif';
@@ -29,12 +27,11 @@ export default function GraphView({ graph, selection, onSelect, active = true }:
   const previewRef = useRef<HTMLElement>(null);
   const [dismissedSelection, setDismissedSelection] = useState<typeof selection>(null);
 
-  // d3 adds coordinates and replaces link IDs with node references. Give it
-  // private copies so those mutations cannot leak into vocabulary data or UI.
-  const layout = useMemo<GraphData<GraphNode>>(() => ({
-    nodes: graph.nodes.map(node => ({ ...node })),
-    links: graph.links.map(link => ({ ...link })),
-  }), [graph]);
+  const [layoutStore] = useState(createGraphLayout);
+  const [layout, setLayout] = useState<GraphData<GraphNode>>({ nodes: [], links: [] });
+  useLayoutEffect(() => {
+    setLayout(layoutStore.update(graph));
+  }, [graph, layoutStore]);
   const nodesById = useMemo(() => new Map(layout.nodes.map(node => [node.id, node])), [layout]);
 
   const focusSelection = useCallback(() => {
@@ -47,8 +44,8 @@ export default function GraphView({ graph, selection, onSelect, active = true }:
 
   useEffect(() => {
     pendingFocus.current = selection !== null;
-    focusSelection();
-  }, [selection, focusSelection]);
+  }, [selection]);
+  useEffect(focusSelection, [focusSelection]);
 
   const selectedNode = selection ? nodesById.get(selection.id) : undefined;
   const showPreview = active && selectedNode && dismissedSelection !== selection;
@@ -121,6 +118,8 @@ export default function GraphView({ graph, selection, onSelect, active = true }:
           onNodeClick={node => onSelect(node.id)}
           onBackgroundClick={() => setDismissedSelection(selection)}
           onEngineTick={focusSelection}
+          onEngineStop={layoutStore.settle}
+          onNodeDragEnd={pinNode}
           onRenderFramePost={positionPreview}
         />
       )}

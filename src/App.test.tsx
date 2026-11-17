@@ -25,8 +25,8 @@ vi.mock('react-force-graph-2d', async () => {
       useEffect(() => {
         if (simulation.ready) {
           props.graphData?.nodes.forEach((node, index) => {
-            node.x = index + 10;
-            node.y = index + 20;
+            node.x = node.fx ?? node.x ?? index + 10;
+            node.y = node.fy ?? node.y ?? index + 20;
           });
           // Model d3 replacing link IDs with node references.
           const link = props.graphData?.links[0];
@@ -402,4 +402,25 @@ test('filters the canvas by several selected levels in a focused graph', async (
   await user.click(screen.getByRole('checkbox', { name: 'HSK 3' }));
   await waitFor(() => expect(rendererProps().graphData?.nodes).toHaveLength(0));
   expect(screen.getByText(/Select at least one HSK level/)).toBeInTheDocument();
+});
+
+test('keeps the visible layout while loading and preserves nodes and camera on incremental updates', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(await screen.findByRole('button', { name: '爱' }));
+  const before = rendererProps().graphData!;
+  const anchor = before.nodes.find(node => node.id === '爱')!;
+  anchor.x = 180; anchor.y = 240;
+  centerAt.mockClear();
+  let finish!: (response: { entries: typeof graphEntries; has_more: boolean }) => void;
+  vi.mocked(getGraphVocabulary).mockReturnValueOnce(new Promise(resolve => { finish = resolve; }));
+  await user.click(screen.getByRole('checkbox', { name: 'HSK 3' }));
+  expect(rendererProps().graphData).toBe(before);
+  expect(screen.getByRole('button', { name: '爱' })).toBeInTheDocument();
+  await act(async () => finish({ entries: [...graphEntries, { text: '爱好', pronunciation: 'ài hào', description: 'hobby' }], has_more: false }));
+  const after = rendererProps().graphData!;
+  expect(after.nodes.find(node => node.id === '爱')).toBe(anchor);
+  expect(anchor).toMatchObject({ x: 180, y: 240, fx: 180, fy: 240 });
+  expect(after.nodes.some(node => node.id === '爱好')).toBe(true);
+  expect(centerAt).not.toHaveBeenCalled();
 });
