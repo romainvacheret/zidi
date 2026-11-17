@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from .db import DictionaryBuilder
 from .db.dictionary_database import ensure_character_details, ensure_usage_ranks, ensure_word_search
 from .dictionary import SearchMode, character_details, search_dictionary, word_details
+from .vocabulary import graph_vocabulary
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 
@@ -29,6 +30,17 @@ class DictionaryEntry(BaseModel):
 class SearchResponse(BaseModel):
     results: list[DictionaryEntry]
     limit: int
+
+
+class GraphVocabularyEntry(BaseModel):
+    text: str
+    pronunciation: str
+    description: str
+
+
+class GraphVocabularyResponse(BaseModel):
+    entries: list[GraphVocabularyEntry]
+    has_more: bool
 
 
 class CharacterComponent(BaseModel):
@@ -103,6 +115,13 @@ def create_app(db_file: Path | None = None, *, resources: Path | None = None,
         yield
 
     app = FastAPI(title="Zidi dictionary", lifespan=lifespan)
+
+    @app.get("/api/graph/vocabulary", response_model=GraphVocabularyResponse)
+    def vocabulary(level: int = Query(default=1, ge=1, le=7),
+                   limit: int = Query(default=200, ge=1, le=300),
+                   character: str | None = Query(default=None, min_length=1, max_length=1),
+                   exclude: list[str] = Query(default=[], max_length=500)):
+        return graph_vocabulary(database, level, limit, character, exclude)
 
     @app.get("/api/dictionary/search", response_model=SearchResponse)
     def search(q: str = Query(min_length=1, max_length=200),

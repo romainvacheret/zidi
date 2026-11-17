@@ -4,7 +4,7 @@ import { graphHref } from '../navigation';
 import { vocabularyNodes } from '../vocabulary';
 import EntryPanel from './EntryPanel';
 
-function bundledDetails(word: string): WordDetailsData | null {
+function cachedDetails(word: string): WordDetailsData | null {
   const node = vocabularyNodes.get(word);
   if (!node) return null;
   return {
@@ -21,7 +21,7 @@ export default function WordDetails({ word, full = true, onClose = () => {}, ret
   word: string; full?: boolean; onClose?(): void; returnFocusTo?: HTMLElement | null;
 }) {
   const title = useRef<HTMLHeadingElement>(null);
-  const [data, setData] = useState<WordDetailsData | null>(() => bundledDetails(word));
+  const [data, setData] = useState<WordDetailsData | null>(() => cachedDetails(word));
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function WordDetails({ word, full = true, onClose = () => {}, ret
     getWordDetails(word, controller.signal).then(result => {
       if (!controller.signal.aborted) setData(result);
     }).catch((reason: unknown) => {
-      if (!controller.signal.aborted && !bundledDetails(word)) {
+      if (!controller.signal.aborted && !cachedDetails(word)) {
         setError(reason instanceof Error ? reason.message : 'Could not load word details.');
       }
     });

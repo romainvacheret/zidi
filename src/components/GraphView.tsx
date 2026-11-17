@@ -7,7 +7,6 @@ import ForceGraph2D, {
 import type { Graph, GraphNode } from '../types';
 import { useElementSize } from '../hooks/useElementSize';
 import GraphNodePreview from './GraphNodePreview';
-import { vocabularyNodes } from '../vocabulary';
 
 interface GraphViewProps {
   graph: Graph;
@@ -129,7 +128,7 @@ export default function GraphView({ graph, selection, onSelect, active = true }:
         <button type="button" className="graph-preview-close" aria-label="Close graph tooltip"
           onClick={() => setDismissedSelection(selection)}>×</button>
         <GraphNodePreview key={selectedNode.id} node={selectedNode} />
-        {!vocabularyNodes.has(selectedNode.id) && <p className="graph-preview-note">Outside HSK 1–3 · {Array.from(selectedNode.id).length > 1 ? 'linked to its constituent characters' : 'shown as a standalone character'}</p>}
+        {!selectedNode.entries.length && <p className="graph-preview-note">{Array.from(selectedNode.id).length > 1 ? 'linked to its constituent characters' : 'shown as a standalone character'}</p>}
       </aside>}
     </div>
   );

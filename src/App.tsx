@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './App.css';
-import { vocabularyGraph, vocabularyNodes } from './vocabulary';
+import { getGraphVocabulary, mergeGraph, vocabularyNodes, MAX_GRAPH_NODES } from './vocabulary';
 import { graphTargetFromHash } from './navigation';
-import type { GraphNode } from './types';
-import { toGraph } from './graph';
+import type { Graph } from './types';
 import CustomSideBar from './components/sidebar';
 import GraphView from './components/GraphView';
 import DictionaryView from './components/DictionaryView';
@@ -15,24 +14,80 @@ function App() {
     const id = graphTargetFromHash();
     return id ? { id } : null;
   });
-  const [additionalNodes, setAdditionalNodes] = useState<GraphNode[]>(() =>
-    selection && !vocabularyNodes.has(selection.id) ? [{ id: selection.id, entries: [] }] : []);
-  const graph = useMemo(() => {
-    if (!additionalNodes.length) return vocabularyGraph;
-    const extra = toGraph(additionalNodes.map(node => ({ text: node.id, pronunciation: '', description: '' })));
-    return {
-      nodes: [...vocabularyGraph.nodes, ...extra.nodes.filter(node => !vocabularyNodes.has(node.id))
-        .map(node => ({ id: node.id, entries: [] }))],
-      links: [...vocabularyGraph.links, ...extra.links],
-    };
-  }, [additionalNodes]);
-  // A new request also recenters a node that was selected before panning away.
+  const [level, setLevel] = useState(1);
+  const [wordLimit, setWordLimit] = useState(200);
+  const [attempt, setAttempt] = useState(0);
+  const [graph, setGraph] = useState<Graph>({ nodes: [], links: [] });
+  const currentGraph = useRef(graph);
+  currentGraph.current = graph;
+  const [loading, setLoading] = useState(true);
+  const [expanding, setExpanding] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const expansion = useRef<AbortController | null>(null);
+  const currentSelection = useRef(selection);
+  currentSelection.current = selection;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    expansion.current?.abort();
+    setExpanding(false);
+    setLoading(true);
+    setError('');
+    setNotice('');
+    getGraphVocabulary(level, wordLimit, controller.signal).then(result => {
+      if (controller.signal.aborted) return;
+      const id = currentSelection.current?.id;
+      // Make room for a bookmarked selection even when the base graph is full.
+      const selected = id ? mergeGraph({ nodes: [], links: [] }, [], [id]) : { nodes: [], links: [] };
+      const next = mergeGraph(selected, result.entries);
+      setGraph(next);
+      vocabularyNodes.clear();
+      for (const node of next.nodes) if (node.entries.length) vocabularyNodes.set(node.id, node);
+      setNotice(result.has_more ? 'Showing a subset, ordered by usage frequency.' : 'All matching words loaded.');
+    }).catch((reason: unknown) => {
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not load graph.');
+    }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => { controller.abort(); expansion.current?.abort(); };
+  }, [level, wordLimit, attempt]);
+
   const selectNode = useCallback((id: string) => {
-    if (!vocabularyNodes.has(id)) {
-      setAdditionalNodes(nodes => nodes.some(node => node.id === id) ? nodes : [...nodes, { id, entries: [] }]);
+    const previous = currentGraph.current;
+    if (!previous.nodes.some(node => node.id === id)) {
+      const next = mergeGraph(previous, [], [id]);
+      if (!next.nodes.some(node => node.id === id)) {
+        setNotice('The graph has reached its 500-node limit. Choose a smaller word limit to add entries.');
+        return;
+      }
+      currentGraph.current = next;
+      setGraph(next);
     }
     setSelection({ id });
   }, []);
+
+  async function expandCharacter() {
+    if (!selection || loading || expanding) return;
+    const controller = new AbortController();
+    expansion.current = controller;
+    setExpanding(true);
+    setError('');
+    try {
+      const result = await getGraphVocabulary(level, 20, controller.signal, selection.id,
+        graph.nodes.map(node => node.id));
+      if (controller.signal.aborted) return;
+      const previous = currentGraph.current;
+      const next = mergeGraph(previous, result.entries);
+      const added = result.entries.filter(entry => !previous.nodes.some(node => node.id === entry.text)
+        && next.nodes.some(node => node.id === entry.text));
+      currentGraph.current = next;
+      setGraph(next);
+      added.forEach(entry => vocabularyNodes.set(entry.text, { id: entry.text, entries: [entry] }));
+      setNotice(added.length ? `Added ${added.length} related words.${result.has_more ? ' More are available.' : ''}`
+        : 'No more related words fit this level and the 500-node limit.');
+    } catch (reason) {
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not expand character.');
+    } finally { if (!controller.signal.aborted) setExpanding(false); }
+  }
   useEffect(() => {
     const navigate = () => {
       if (window.location.hash.startsWith('#/dictionary')) setTab('dictionary');
@@ -81,9 +136,17 @@ function App() {
             nodes={graph.nodes}
             selectedId={selection?.id}
             onSelect={selectNode}
-            supplementalCount={additionalNodes.length}
+            level={level} wordLimit={wordLimit} loading={loading}
+            onLevelChange={setLevel} onWordLimitChange={setWordLimit}
           />
           <main className="graph-main" aria-label="Word and character graph">
+            <div className="graph-status" aria-live="polite">
+              {loading ? <p role="status">Loading graph…</p> : <p>{notice} {graph.nodes.length}/{MAX_GRAPH_NODES} nodes.</p>}
+              {error && <p role="alert">{error} <button onClick={() => setAttempt(value => value + 1)}>Try again</button></p>}
+              {selection && /^\p{Script=Han}$/u.test(selection.id) && <button type="button"
+                disabled={loading || expanding || graph.nodes.length >= MAX_GRAPH_NODES}
+                onClick={expandCharacter}>{expanding ? 'Loading related words…' : `Expand ${selection.id} (+20 words)`}</button>}
+            </div>
             <GraphView graph={graph} selection={selection} onSelect={selectNode} active={tab === 'graph'} />
           </main>
         </div>

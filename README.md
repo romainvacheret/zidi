@@ -59,16 +59,22 @@ Full character entries also show **Stroke order** and **Component decomposition*
 
 ## Graph exploration
 
-Use **Search graph** above the sidebar list to narrow its entries by Chinese text, bundled pinyin, or English meaning. Pinyin filtering ignores tones and accepts spaces, tone numbers, and `ü`/`v`. The matching count updates as you type; clear the field to restore every entry. Filtering affects only the list, preserving the graph layout and selection.
+Use **Search graph** above the sidebar list to narrow its entries by Chinese text, dictionary pinyin, or English meaning. Pinyin filtering ignores tones and accepts spaces, tone numbers, and `ü`/`v`. The matching count updates as you type; clear the field to restore every entry. Filtering affects only the list, preserving the graph layout and selection.
 
 Click a graph node or select it in the sidebar to see a small, clickable preview with pinyin and a short English meaning. It follows the node while panning and zooming. Click the preview to open the entry; close it with ×, Escape, or a canvas-background click. Selecting the node again reopens the preview and recenters it.
 
-**View in graph** on an entry opens the Graph tab centered on that character or word. Graph targets use bookmarkable URLs such as `/#/graph/%E4%B8%96`. Dictionary characters outside the bundled HSK graph appear as standalone nodes for the current session; existing vocabulary relationships stay intact.
+**View in graph** on an entry opens the Graph tab centered on that character or word. Graph targets use bookmarkable URLs such as `/#/graph/%E4%B8%96`. Dictionary characters outside the loaded vocabulary graph appear as standalone nodes for the current session; existing vocabulary relationships stay intact.
 
-Word entries use the full dictionary, including traditional forms, definitions, usage ranks and constituent-character links. Bundled HSK readings and meanings remain available as an offline fallback. Nodes without HSK metadata load their previews from the dictionary API. Words outside HSK are linked to their constituent characters when opened in the graph.
+Word entries use the full dictionary, including traditional forms, definitions, usage ranks and constituent-character links. Readings and meanings fetched for the current graph remain available as a session fallback. Nodes without HSK metadata load their previews from the dictionary API. Words outside HSK are linked to their constituent characters when opened in the graph.
 
 ## Project documentation
 
 Planning and work tracking live under [docs/](docs/plans/revival.md). See the [work tracking conventions](docs/agents/issue-tracker.md) and [domain documentation conventions](docs/agents/domain.md).
 
 The [graph architecture guide](docs/architecture/graph.md) explains vocabulary relationships, simulation state, selection, resizing, and validation.
+
+### Bounded dictionary graph
+
+The graph uses the backend dictionary JSONL resources through `GET /api/graph/vocabulary`; the legacy frontend HSK lists have been removed. It starts with up to 200 vocabulary entries at internal dictionary HSK level 1, ordered by subtitle usage rank with book rank as fallback. Select a level (1–6 or the combined 7–9 tag) and a word limit (50, 100, 200, or 300) in the sidebar. These are the dictionary's existing internal classifications, not validated official HSK membership. Level selection matches that level exactly.
+
+Each vocabulary entry links to its constituent Han characters. The graph stops at 500 total nodes, including those characters and dictionary selections. Select a character and choose **Expand** to add up to 20 more related vocabulary entries from the selected level. Expansion retains existing nodes and excludes loaded expressions; changing level or word limit starts a fresh subset while retaining the selected entry. Search the dictionary to open a specific entry in the graph; if it cannot fit, reduce the word limit. Loading failures offer a retry. The backend is required to load graph vocabulary.

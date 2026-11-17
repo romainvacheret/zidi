@@ -7,10 +7,14 @@ interface SidebarProps {
   nodes: readonly GraphNode[];
   selectedId?: string;
   onSelect(id: string): void;
-  supplementalCount?: number;
+  level: number;
+  wordLimit: number;
+  loading: boolean;
+  onLevelChange(level: number): void;
+  onWordLimitChange(limit: number): void;
 }
 
-function CustomSideBar({ nodes, selectedId, onSelect, supplementalCount = 0 }: SidebarProps) {
+function CustomSideBar({ nodes, selectedId, onSelect, level, wordLimit, loading, onLevelChange, onWordLimitChange }: SidebarProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLElement>(null);
@@ -24,7 +28,16 @@ function CustomSideBar({ nodes, selectedId, onSelect, supplementalCount = 0 }: S
       <header className="sidebar-header">
         <h1>Zìdì <span lang="zh">字缔</span></h1>
         <h2>Words and characters</h2>
-        <p>{nodes.length} nodes · HSK 1–3{supplementalCount > 0 && ` + ${supplementalCount} dictionary selections`}</p>
+        <p>{nodes.length} nodes · Dictionary HSK {level === 7 ? '7–9' : level}</p>
+        <div className="graph-options">
+          <label>HSK level<select value={level} onChange={event => onLevelChange(Number(event.target.value))}>
+            {[1, 2, 3, 4, 5, 6, 7].map(value => <option key={value} value={value}>{value === 7 ? '7–9' : value}</option>)}
+          </select></label>
+          <label>Word limit<select value={wordLimit} onChange={event => onWordLimitChange(Number(event.target.value))}>
+            {[50, 100, 200, 300].map(value => <option key={value} value={value}>{value}</option>)}
+          </select></label>
+        </div>
+        <p className="graph-sidebar-count">Internal dictionary levels · {loading ? 'Loading…' : 'Most frequent first'}</p>
         <label className="graph-sidebar-search" htmlFor="graph-sidebar-query">Search graph</label>
         <div className="graph-sidebar-search-row">
           <input id="graph-sidebar-query" ref={inputRef} type="search" value={query}

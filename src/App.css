@@ -315,3 +315,11 @@ a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid 
   .writing-card { padding: 16px; }
   .stroke-speed { margin-left: 0; }
 }
+
+.graph-options { display: flex; flex-wrap: wrap; gap: 12px; }
+.graph-options label { display: grid; gap: 4px; font-size: 13px; }
+.graph-options select { padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; }
+.graph-main { position: relative; }
+.graph-status { position: absolute; z-index: 2; left: 12px; bottom: 12px; max-width: calc(100% - 24px); padding: 8px 12px; background: #fffffff0; border-radius: 8px; font-size: 13px; }
+.graph-status p { margin: 0 0 4px; }
+.graph-status button { padding: 6px 10px; }

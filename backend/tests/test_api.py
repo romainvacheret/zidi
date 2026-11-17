@@ -36,6 +36,22 @@ class DictionaryApiTest(unittest.TestCase):
                 "\n".join(json.dumps(record) for record in records), encoding="utf-8")
         self.app = create_app(self.db, resources=self.root, frontend=self.root / "no-build")
 
+    def test_graph_vocabulary_and_request_validation(self):
+        with TestClient(self.app) as client:
+            with closing(sqlite3.connect(self.db)) as connection, connection:
+                record = {"simp": "世界", "gloss": "world", "pinyin": "shì jiè",
+                          "statistics": {"hskLevel": 3}}
+                connection.execute("UPDATE words SET source_json = ? WHERE simp = ?",
+                                   (json.dumps(record), "世界"))
+            result = client.get("/api/graph/vocabulary", params={"level": 3, "limit": 50})
+            self.assertEqual(result.status_code, 200)
+            self.assertEqual(result.json(), {"entries": [{"text": "世界", "pronunciation": "shì jiè",
+                                                          "description": "world"}], "has_more": False})
+            self.assertEqual(client.get("/api/graph/vocabulary").json()["entries"], [])
+            self.assertEqual(client.get("/api/graph/vocabulary?level=3&character=世&exclude=世界").json()["entries"], [])
+            for params in [{"level": 0}, {"level": 10}, {"limit": 0}, {"limit": 301}, {"character": "世界"}]:
+                self.assertEqual(client.get("/api/graph/vocabulary", params=params).status_code, 422)
+
     def test_builds_database_and_searches_all_existing_modes(self):
         with TestClient(self.app) as client:
             self.assertTrue(self.db.exists())
