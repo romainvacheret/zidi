@@ -323,3 +323,7 @@ a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid 
 .graph-status { position: absolute; z-index: 2; left: 12px; bottom: 12px; max-width: calc(100% - 24px); padding: 8px 12px; background: #fffffff0; border-radius: 8px; font-size: 13px; }
 .graph-status p { margin: 0 0 4px; }
 .graph-status button { padding: 6px 10px; }
+.graph-levels { margin: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 6px 12px; width: 100%; }
+.graph-levels legend { padding: 0 4px; font-size: 13px; }
+.graph-levels label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.graph-levels input { margin: 0; }

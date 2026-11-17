@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import './App.css';
-import { getGraphVocabulary, mergeGraph, vocabularyNodes, MAX_GRAPH_NODES } from './vocabulary';
+import { getGraphNeighborhood, getGraphVocabulary, mergeGraph, filterGraphCharacters, vocabularyNodes, MAX_GRAPH_NODES } from './vocabulary';
 import { graphTargetFromHash } from './navigation';
 import type { Graph } from './types';
 import CustomSideBar from './components/sidebar';
@@ -14,8 +14,12 @@ function App() {
     const id = graphTargetFromHash();
     return id ? { id } : null;
   });
-  const [level, setLevel] = useState(1);
-  const [wordLimit, setWordLimit] = useState(200);
+  const [neighborhood, setNeighborhood] = useState<{ id: string } | null>(() => {
+    const id = graphTargetFromHash();
+    return id ? { id } : null;
+  });
+  const [levels, setLevels] = useState<number[]>([1]);
+  const [wordLimit, setWordLimit] = useState(() => graphTargetFromHash() ? 50 : 200);
   const [attempt, setAttempt] = useState(0);
   const [graph, setGraph] = useState<Graph>({ nodes: [], links: [] });
   const currentGraph = useRef(graph);
@@ -25,8 +29,6 @@ function App() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const expansion = useRef<AbortController | null>(null);
-  const currentSelection = useRef(selection);
-  currentSelection.current = selection;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -35,21 +37,31 @@ function App() {
     setLoading(true);
     setError('');
     setNotice('');
-    getGraphVocabulary(level, wordLimit, controller.signal).then(result => {
+    setGraph({ nodes: [], links: [] });
+    const request = levels.length === 0
+      ? Promise.resolve({ entries: [], has_more: false, allowed_characters: [] })
+      : neighborhood
+      ? getGraphNeighborhood(neighborhood.id, wordLimit, controller.signal, levels)
+      : getGraphVocabulary(levels, wordLimit, controller.signal);
+    request.then(result => {
       if (controller.signal.aborted) return;
-      const id = currentSelection.current?.id;
+      const id = neighborhood?.id;
       // Make room for a bookmarked selection even when the base graph is full.
-      const selected = id ? mergeGraph({ nodes: [], links: [] }, [], [id]) : { nodes: [], links: [] };
-      const next = mergeGraph(selected, result.entries);
+      const showFocus = id && (result.allowed_characters == null || result.allowed_characters.includes(id)
+        || result.entries.some(entry => entry.text === id));
+      const selected = showFocus ? mergeGraph({ nodes: [], links: [] }, [], [id]) : { nodes: [], links: [] };
+      const next = filterGraphCharacters(mergeGraph(selected, result.entries), result.allowed_characters);
       setGraph(next);
       vocabularyNodes.clear();
       for (const node of next.nodes) if (node.entries.length) vocabularyNodes.set(node.id, node);
-      setNotice(result.has_more ? 'Showing a subset, ordered by usage frequency.' : 'All matching words loaded.');
+      setNotice(levels.length === 0 ? 'Select at least one HSK level.' : neighborhood
+        ? `Words connected to ${neighborhood.id} through shared characters.${!next.nodes.some(node => node.id === neighborhood.id) ? ' Focus is outside the selected levels.' : ''}${result.has_more ? ' Showing the closest subset.' : ''}`
+        : result.has_more ? 'Showing a subset, ordered by usage frequency.' : 'All matching words loaded.');
     }).catch((reason: unknown) => {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not load graph.');
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => { controller.abort(); expansion.current?.abort(); };
-  }, [level, wordLimit, attempt]);
+  }, [levels, wordLimit, attempt, neighborhood]);
 
   const selectNode = useCallback((id: string) => {
     const previous = currentGraph.current;
@@ -66,17 +78,18 @@ function App() {
   }, []);
 
   async function expandCharacter() {
-    if (!selection || loading || expanding) return;
+    if (!selection || !levels.length || loading || expanding) return;
     const controller = new AbortController();
     expansion.current = controller;
     setExpanding(true);
     setError('');
     try {
-      const result = await getGraphVocabulary(level, 20, controller.signal, selection.id,
+      const result = await getGraphVocabulary(levels, 20, controller.signal, selection.id,
         graph.nodes.map(node => node.id));
       if (controller.signal.aborted) return;
       const previous = currentGraph.current;
-      const next = mergeGraph(previous, result.entries);
+      const next = filterGraphCharacters(mergeGraph(previous, result.entries), result.allowed_characters == null
+        ? null : [...previous.nodes.filter(node => Array.from(node.id).length === 1).map(node => node.id), ...result.allowed_characters]);
       const added = result.entries.filter(entry => !previous.nodes.some(node => node.id === entry.text)
         && next.nodes.some(node => node.id === entry.text));
       currentGraph.current = next;
@@ -88,18 +101,42 @@ function App() {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not expand character.');
     } finally { if (!controller.signal.aborted) setExpanding(false); }
   }
+  const focusNeighborhood = useCallback((id: string) => {
+    setSelection({ id });
+    setNeighborhood({ id });
+    setWordLimit(50);
+    window.history.replaceState(null, '', `#/graph/${encodeURIComponent(id)}`);
+  }, []);
+
+  function openTab(name: 'dictionary' | 'graph') {
+    setTab(name);
+    if (name === 'graph') {
+      setNeighborhood(null);
+      setLevels([1]);
+      setWordLimit(200);
+      setSelection(null);
+      setAttempt(value => value + 1);
+      window.history.replaceState(null, '', '#/graph');
+    }
+  }
   useEffect(() => {
     const navigate = () => {
       if (window.location.hash.startsWith('#/dictionary')) setTab('dictionary');
       else if (window.location.hash.startsWith('#/graph')) {
         setTab('graph');
         const id = graphTargetFromHash();
-        if (id) selectNode(id);
+        if (id) focusNeighborhood(id);
+        else {
+          setNeighborhood(null);
+          setLevels([1]);
+          setWordLimit(200);
+          setSelection(null);
+        }
       }
     };
     window.addEventListener('hashchange', navigate);
     return () => window.removeEventListener('hashchange', navigate);
-  }, [selectNode]);
+  }, [focusNeighborhood]);
 
   return (
     <div className="app-shell">
@@ -110,13 +147,13 @@ function App() {
             <button key={name} id={`${name}-tab`} role="tab"
               aria-selected={tab === name} aria-controls={`${name}-panel`}
               tabIndex={tab === name ? 0 : -1}
-              onClick={() => setTab(name)}
+              onClick={() => openTab(name)}
               onKeyDown={event => {
                 if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
                   event.preventDefault();
                   const next = event.key === 'Home' ? 'dictionary' : event.key === 'End' ? 'graph'
                     : name === 'graph' ? 'dictionary' : 'graph';
-                  setTab(next);
+                  openTab(next);
                   document.getElementById(`${next}-tab`)?.focus();
                 }
               }}>
@@ -133,18 +170,22 @@ function App() {
         aria-labelledby="graph-tab" tabIndex={0} hidden={tab !== 'graph'}>
         <div className="App">
           <CustomSideBar
+            key={neighborhood?.id || 'hsk'}
             nodes={graph.nodes}
             selectedId={selection?.id}
             onSelect={selectNode}
-            level={level} wordLimit={wordLimit} loading={loading}
-            onLevelChange={setLevel} onWordLimitChange={setWordLimit}
+            neighborhood={neighborhood?.id} levels={levels} wordLimit={wordLimit} loading={loading}
+            onLevelsChange={setLevels} onWordLimitChange={setWordLimit}
           />
           <main className="graph-main" aria-label="Word and character graph">
             <div className="graph-status" aria-live="polite">
               {loading ? <p role="status">Loading graph…</p> : <p>{notice} {graph.nodes.length}/{MAX_GRAPH_NODES} nodes.</p>}
               {error && <p role="alert">{error} <button onClick={() => setAttempt(value => value + 1)}>Try again</button></p>}
-              {selection && /^\p{Script=Han}$/u.test(selection.id) && <button type="button"
-                disabled={loading || expanding || graph.nodes.length >= MAX_GRAPH_NODES}
+              {selection && <button type="button" disabled={loading}
+                onClick={() => focusNeighborhood(selection.id)}>Focus on {selection.id}</button>}
+              {neighborhood && <button type="button" onClick={() => openTab('graph')}>Back to HSK 1</button>}
+              {!neighborhood && selection && /^\p{Script=Han}$/u.test(selection.id) && <button type="button"
+                disabled={!levels.length || loading || expanding || graph.nodes.length >= MAX_GRAPH_NODES}
                 onClick={expandCharacter}>{expanding ? 'Loading related words…' : `Expand ${selection.id} (+20 words)`}</button>}
             </div>
             <GraphView graph={graph} selection={selection} onSelect={selectNode} active={tab === 'graph'} />

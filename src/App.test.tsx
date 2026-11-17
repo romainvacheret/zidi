@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import type { ForceGraphProps } from 'react-force-graph-2d';
 import type { GraphNode } from './types';
 import App from './App';
-import { getGraphVocabulary } from './vocabulary';
+import { getGraphNeighborhood, getGraphVocabulary } from './vocabulary';
 
 const { centerAt, zoomToFit, receivedProps, simulation } = vi.hoisted(() => ({
   centerAt: vi.fn(),
@@ -47,6 +47,7 @@ const graphEntries = [
 vi.mock('./vocabulary', async importOriginal => ({
   ...await importOriginal<typeof import('./vocabulary')>(),
   getGraphVocabulary: vi.fn(),
+  getGraphNeighborhood: vi.fn(),
 }));
 
 const observers = new Map<Element, { callback: ResizeObserverCallback; observer: ResizeObserver }>();
@@ -54,6 +55,10 @@ const observers = new Map<Element, { callback: ResizeObserverCallback; observer:
 beforeEach(() => {
   window.history.replaceState(null, '', '/');
   vi.clearAllMocks();
+  vi.mocked(getGraphNeighborhood).mockReset();
+  vi.mocked(getGraphNeighborhood).mockImplementation(async target => ({
+    entries: target === '爸爸' ? [graphEntries[1]] : target === '爱' ? [graphEntries[0]] : [], has_more: false,
+  }));
   vi.mocked(getGraphVocabulary).mockReset();
   vi.mocked(getGraphVocabulary).mockResolvedValue({ entries: graphEntries, has_more: true });
   observers.clear();
@@ -167,7 +172,7 @@ test('isolates renderer mutations across application mounts', async () => {
   expect(typeof current.links[0].source).toBe('string');
 });
 
-test('switches feature tabs with mouse and keyboard while retaining graph selection', async () => {
+test('opening the Graph tab restores the default HSK 1 graph', async () => {
   const user = userEvent.setup();
   render(<App />);
   const node = await screen.findByRole('button', { name: '爱' });
@@ -179,7 +184,7 @@ test('switches feature tabs with mouse and keyboard while retaining graph select
   screen.getByRole('tab', { name: 'Dictionary' }).focus();
   await user.keyboard('{ArrowRight}');
   expect(screen.getByRole('tab', { name: 'Graph' })).toHaveFocus();
-  expect(screen.getByRole('button', { name: '爱' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('button', { name: '爱' })).toHaveAttribute('aria-pressed', 'false');
   await user.click(screen.getByRole('tab', { name: 'Dictionary' }));
   expect(screen.getByLabelText('Chinese or pinyin')).toHaveValue('shi');
 });
@@ -200,7 +205,12 @@ test('shows a clickable word tooltip, opens its entry, and returns to the center
   await user.click(screen.getByRole('link', { name: 'View in graph' }));
   await waitFor(() => expect(screen.getByRole('tab', { name: 'Graph' })).toHaveAttribute('aria-selected', 'true'));
   expect(screen.getByRole('button', { name: '爸爸' })).toHaveAttribute('aria-pressed', 'true');
-  expect(centerAt).toHaveBeenLastCalledWith(node.x, node.y, 300);
+  await waitFor(() => {
+    const focusedNode = rendererProps().graphData!.nodes.find(node => node.id === '爸爸')!;
+    expect(focusedNode.x).toEqual(expect.any(Number));
+    expect(centerAt).toHaveBeenLastCalledWith(focusedNode.x, focusedNode.y, 300);
+  });
+  expect(screen.queryByRole('button', { name: '爱' })).not.toBeInTheDocument();
   const again = screen.getByRole('complementary', { name: 'Selected graph entry' });
   await user.click(within(again).getByRole('button', { name: 'Close graph tooltip' }));
   expect(screen.queryByRole('complementary', { name: 'Selected graph entry' })).not.toBeInTheDocument();
@@ -230,7 +240,7 @@ test('opens a character entry from the tooltip and navigates back to its graph s
   expect(screen.queryByRole('complementary', { name: 'Selected graph entry' })).not.toBeInTheDocument();
 });
 
-test('centers an external dictionary character after coordinates initialize without losing HSK nodes', async () => {
+test('opens a bookmarked character neighborhood without unrelated HSK nodes', async () => {
   window.history.replaceState(null, '', '/#/graph/%F0%A0%AE%B7');
   simulation.ready = false;
   const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({
@@ -238,9 +248,10 @@ test('centers an external dictionary character after coordinates initialize with
   }) });
   vi.stubGlobal('fetch', fetch);
   render(<App />);
-  await screen.findByRole('button', { name: '爱' });
+  await screen.findByRole('button', { name: '𠮷' });
   expect(screen.getByRole('button', { name: '𠮷' })).toHaveAttribute('aria-pressed', 'true');
-  expect(screen.getByRole('button', { name: '爱' })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: '爱' })).not.toBeInTheDocument();
+  expect(getGraphNeighborhood).toHaveBeenCalledWith('𠮷', 50, expect.any(AbortSignal), [1]);
   expect(centerAt).not.toHaveBeenCalled();
   const node = rendererProps().graphData!.nodes.find(node => node.id === '𠮷')!;
   node.x = 0; node.y = 42;
@@ -255,7 +266,7 @@ test('adds a dictionary word outside HSK with its constituent links', async () =
     character: '数据库', readings: ['shù jù kù'], pinyin: 'shù jù kù', gloss: 'database',
   }) }));
   render(<App />);
-  await screen.findByRole('button', { name: '爱' });
+  await screen.findByRole('button', { name: '数据库' });
   expect(screen.getByRole('button', { name: '数据库' })).toHaveAttribute('aria-pressed', 'true');
   expect(rendererProps().graphData?.links).toEqual(expect.arrayContaining([
     expect.objectContaining({ target: '数' }), expect.objectContaining({ target: '据' }), expect.objectContaining({ target: '库' }),
@@ -311,11 +322,11 @@ test('requests bounded vocabulary when level and word limit change', async () =>
   const user = userEvent.setup();
   render(<App />);
   await screen.findByRole('button', { name: '爱' });
-  expect(getGraphVocabulary).toHaveBeenLastCalledWith(1, 200, expect.any(AbortSignal));
-  await user.selectOptions(screen.getByLabelText('HSK level'), '3');
-  await waitFor(() => expect(getGraphVocabulary).toHaveBeenLastCalledWith(3, 200, expect.any(AbortSignal)));
+  expect(getGraphVocabulary).toHaveBeenLastCalledWith([1], 200, expect.any(AbortSignal));
+  await user.click(screen.getByRole('checkbox', { name: 'HSK 3' }));
+  await waitFor(() => expect(getGraphVocabulary).toHaveBeenLastCalledWith([1, 3], 200, expect.any(AbortSignal)));
   await user.selectOptions(screen.getByLabelText('Word limit'), '50');
-  await waitFor(() => expect(getGraphVocabulary).toHaveBeenLastCalledWith(3, 50, expect.any(AbortSignal)));
+  await waitFor(() => expect(getGraphVocabulary).toHaveBeenLastCalledWith([1, 3], 50, expect.any(AbortSignal)));
 });
 
 test('expands a selected character in batches, retaining existing nodes', async () => {
@@ -328,7 +339,7 @@ test('expands a selected character in batches, retaining existing nodes', async 
   await user.click(screen.getByRole('button', { name: 'Expand 爱 (+20 words)' }));
   expect(await screen.findByRole('button', { name: '爱好' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: '爸爸' })).toBeInTheDocument();
-  expect(getGraphVocabulary).toHaveBeenLastCalledWith(1, 20, expect.any(AbortSignal), '爱', expect.arrayContaining(['爱', '爸爸']));
+  expect(getGraphVocabulary).toHaveBeenLastCalledWith([1], 20, expect.any(AbortSignal), '爱', expect.arrayContaining(['爱', '爸爸']));
 });
 
 test('offers retry after a graph loading failure', async () => {
@@ -345,9 +356,50 @@ test('ignores an obsolete level response after a newer selection loads', async (
   vi.mocked(getGraphVocabulary).mockReturnValueOnce(new Promise(resolve => { resolveOld = resolve; }));
   const user = userEvent.setup();
   render(<App />);
-  await user.selectOptions(screen.getByLabelText('HSK level'), '2');
+  await user.click(screen.getByRole('checkbox', { name: 'HSK 2' }));
   await screen.findByRole('button', { name: '爱' });
   await act(async () => resolveOld({ entries: [{ text: '旧', pronunciation: 'jiù', description: 'old' }], has_more: false }));
   expect(screen.queryByRole('button', { name: '旧' })).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: '爱' })).toBeInTheDocument();
+});
+
+
+test('focuses a selected word and resets to HSK 1 from the Graph tab', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(await screen.findByRole('button', { name: '爸爸' }));
+  await user.click(screen.getByRole('button', { name: 'Focus on 爸爸' }));
+  await waitFor(() => expect(screen.queryByRole('button', { name: '爱' })).not.toBeInTheDocument());
+  expect(getGraphNeighborhood).toHaveBeenLastCalledWith('爸爸', 50, expect.any(AbortSignal), [1]);
+  expect(screen.getByText('Shared characters · selected levels')).toBeInTheDocument();
+  expect(screen.getByRole('checkbox', { name: 'HSK 1' })).toBeChecked();
+  await user.click(screen.getByRole('tab', { name: 'Graph' }));
+  expect(await screen.findByRole('button', { name: '爱' })).toBeInTheDocument();
+  expect(screen.getByRole('checkbox', { name: 'HSK 1' })).toBeChecked();
+  expect(screen.getByLabelText('Word limit')).toHaveValue('200');
+});
+
+
+test('filters the canvas by several selected levels in a focused graph', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(await screen.findByRole('button', { name: '爸爸' }));
+  vi.mocked(getGraphNeighborhood).mockResolvedValue({
+    entries: [{ text: '爸爸', pronunciation: 'bàba', description: 'father' }],
+    allowed_characters: [], has_more: false,
+  });
+  await user.click(screen.getByRole('button', { name: 'Focus on 爸爸' }));
+  await waitFor(() => expect(rendererProps().graphData?.nodes.map(node => node.id)).toEqual(['爸爸']));
+  expect(rendererProps().graphData?.links).toHaveLength(0);
+  vi.mocked(getGraphNeighborhood).mockResolvedValue({
+    entries: [{ text: '爸爸', pronunciation: 'bàba', description: 'father' }],
+    allowed_characters: ['爸'], has_more: false,
+  });
+  await user.click(screen.getByRole('checkbox', { name: 'HSK 3' }));
+  await waitFor(() => expect(getGraphNeighborhood).toHaveBeenLastCalledWith('爸爸', 50, expect.any(AbortSignal), [1, 3]));
+  expect(await screen.findByRole('button', { name: '爸' })).toBeInTheDocument();
+  await user.click(screen.getByRole('checkbox', { name: 'HSK 1' }));
+  await user.click(screen.getByRole('checkbox', { name: 'HSK 3' }));
+  await waitFor(() => expect(rendererProps().graphData?.nodes).toHaveLength(0));
+  expect(screen.getByText(/Select at least one HSK level/)).toBeInTheDocument();
 });

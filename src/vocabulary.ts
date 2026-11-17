@@ -5,9 +5,24 @@ export const MAX_GRAPH_NODES = 500;
 // Reuse already fetched dictionary content when opening a word's full entry.
 export const vocabularyNodes = new Map<string, Graph['nodes'][number]>();
 
-export async function getGraphVocabulary(level: number, limit: number, signal: AbortSignal,
-  character?: string, exclude: readonly string[] = []): Promise<{ entries: VocabularyElement[]; has_more: boolean }> {
-  const params = new URLSearchParams({ level: String(level), limit: String(limit) });
+export interface GraphVocabularyResponse {
+  entries: VocabularyElement[];
+  has_more: boolean;
+  allowed_characters?: string[] | null;
+}
+
+export async function getGraphNeighborhood(target: string, limit: number, signal: AbortSignal, levels: readonly number[]): Promise<GraphVocabularyResponse> {
+  const params = new URLSearchParams({ target, limit: String(limit) });
+  levels.forEach(level => params.append('levels', String(level)));
+  const response = await fetch(`/api/graph/neighborhood?${params}`, { signal });
+  if (!response.ok) throw new Error('Could not load related entries. Please try again.');
+  return response.json();
+}
+
+export async function getGraphVocabulary(levels: readonly number[], limit: number, signal: AbortSignal,
+  character?: string, exclude: readonly string[] = []): Promise<GraphVocabularyResponse> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  levels.forEach(level => params.append('levels', String(level)));
   if (character) params.set('character', character);
   exclude.forEach(id => params.append('exclude', id));
   const response = await fetch(`/api/graph/vocabulary?${params}`, { signal });
@@ -31,4 +46,12 @@ export function mergeGraph(graph: Graph, entries: readonly VocabularyElement[], 
     extra.links.forEach(link => links.set(JSON.stringify([link.source, link.target]), link));
   }
   return { nodes: [...nodes.values()], links: [...links.values()] };
+}
+
+export function filterGraphCharacters(graph: Graph, allowed: readonly string[] | null | undefined): Graph {
+  if (!allowed) return graph;
+  const characters = new Set(allowed);
+  const nodes = graph.nodes.filter(node => Array.from(node.id).length > 1 || characters.has(node.id));
+  const ids = new Set(nodes.map(node => node.id));
+  return { nodes, links: graph.links.filter(link => ids.has(link.source) && ids.has(link.target)) };
 }

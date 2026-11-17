@@ -7,14 +7,15 @@ interface SidebarProps {
   nodes: readonly GraphNode[];
   selectedId?: string;
   onSelect(id: string): void;
-  level: number;
+  neighborhood?: string;
+  levels: readonly number[];
   wordLimit: number;
   loading: boolean;
-  onLevelChange(level: number): void;
+  onLevelsChange(levels: number[]): void;
   onWordLimitChange(limit: number): void;
 }
 
-function CustomSideBar({ nodes, selectedId, onSelect, level, wordLimit, loading, onLevelChange, onWordLimitChange }: SidebarProps) {
+function CustomSideBar({ nodes, selectedId, onSelect, neighborhood, levels, wordLimit, loading, onLevelsChange, onWordLimitChange }: SidebarProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLElement>(null);
@@ -28,16 +29,22 @@ function CustomSideBar({ nodes, selectedId, onSelect, level, wordLimit, loading,
       <header className="sidebar-header">
         <h1>Zìdì <span lang="zh">字缔</span></h1>
         <h2>Words and characters</h2>
-        <p>{nodes.length} nodes · Dictionary HSK {level === 7 ? '7–9' : level}</p>
+        <p>{nodes.length} nodes · {neighborhood ? `Around ${neighborhood}` : `Dictionary HSK ${levels.map(level => level === 7 ? '7–9' : level).join(', ') || 'none'}`}</p>
         <div className="graph-options">
-          <label>HSK level<select value={level} onChange={event => onLevelChange(Number(event.target.value))}>
-            {[1, 2, 3, 4, 5, 6, 7].map(value => <option key={value} value={value}>{value === 7 ? '7–9' : value}</option>)}
-          </select></label>
-          <label>Word limit<select value={wordLimit} onChange={event => onWordLimitChange(Number(event.target.value))}>
+          <fieldset className="graph-levels">
+            <legend>HSK levels</legend>
+            {[1, 2, 3, 4, 5, 6, 7].map(level => <label key={level}>
+              <input type="checkbox" checked={levels.includes(level)}
+                onChange={event => onLevelsChange(event.target.checked
+                  ? [...levels, level].sort((a, b) => a - b) : levels.filter(value => value !== level))} />
+              HSK {level === 7 ? '7–9' : level}
+            </label>)}
+          </fieldset>
+          <label>{neighborhood ? 'Related word limit' : 'Word limit'}<select value={wordLimit} onChange={event => onWordLimitChange(Number(event.target.value))}>
             {[50, 100, 200, 300].map(value => <option key={value} value={value}>{value}</option>)}
           </select></label>
         </div>
-        <p className="graph-sidebar-count">Internal dictionary levels · {loading ? 'Loading…' : 'Most frequent first'}</p>
+        <p className="graph-sidebar-count">{loading ? 'Loading…' : neighborhood ? 'Shared characters · selected levels' : 'Internal dictionary levels · Most frequent first'}</p>
         <label className="graph-sidebar-search" htmlFor="graph-sidebar-query">Search graph</label>
         <div className="graph-sidebar-search-row">
           <input id="graph-sidebar-query" ref={inputRef} type="search" value={query}

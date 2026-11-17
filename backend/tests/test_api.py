@@ -43,13 +43,21 @@ class DictionaryApiTest(unittest.TestCase):
                           "statistics": {"hskLevel": 3}}
                 connection.execute("UPDATE words SET source_json = ? WHERE simp = ?",
                                    (json.dumps(record), "世界"))
-            result = client.get("/api/graph/vocabulary", params={"level": 3, "limit": 50})
+            result = client.get("/api/graph/vocabulary", params={"levels": 3, "limit": 50})
             self.assertEqual(result.status_code, 200)
             self.assertEqual(result.json(), {"entries": [{"text": "世界", "pronunciation": "shì jiè",
-                                                          "description": "world"}], "has_more": False})
+                                                          "description": "world"}], "has_more": False, "allowed_characters": ["世"]})
             self.assertEqual(client.get("/api/graph/vocabulary").json()["entries"], [])
-            self.assertEqual(client.get("/api/graph/vocabulary?level=3&character=世&exclude=世界").json()["entries"], [])
-            for params in [{"level": 0}, {"level": 10}, {"limit": 0}, {"limit": 301}, {"character": "世界"}]:
+            self.assertEqual(client.get("/api/graph/vocabulary?levels=3&character=世&exclude=世界").json()["entries"], [])
+            multiple = client.get('/api/graph/vocabulary?levels=1&levels=3')
+            self.assertEqual(len(multiple.json()['entries']), 1)
+            self.assertEqual(client.get('/api/graph/neighborhood?target=世&levels=10').status_code, 422)
+            neighborhood = client.get("/api/graph/neighborhood?target=世&limit=50&levels=3")
+            self.assertEqual(neighborhood.status_code, 200)
+            self.assertEqual(neighborhood.json()["entries"][0]["text"], "世界")
+            for params in [{}, {"target": "世", "limit": 0}, {"target": "世", "limit": 301}]:
+                self.assertEqual(client.get("/api/graph/neighborhood", params=params).status_code, 422)
+            for params in [{"levels": 0}, {"levels": 10}, {"limit": 0}, {"limit": 301}, {"character": "世界"}]:
                 self.assertEqual(client.get("/api/graph/vocabulary", params=params).status_code, 422)
 
     def test_builds_database_and_searches_all_existing_modes(self):

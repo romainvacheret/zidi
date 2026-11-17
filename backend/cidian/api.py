@@ -5,7 +5,7 @@ import logging
 import os
 from pathlib import Path
 import tempfile
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import FastAPI, HTTPException, Path as PathParameter, Query
 from fastapi.staticfiles import StaticFiles
@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from .db import DictionaryBuilder
 from .db.dictionary_database import ensure_character_details, ensure_usage_ranks, ensure_word_search
 from .dictionary import SearchMode, character_details, search_dictionary, word_details
-from .vocabulary import graph_vocabulary
+from .vocabulary import graph_neighborhood, graph_vocabulary
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 
@@ -41,6 +41,7 @@ class GraphVocabularyEntry(BaseModel):
 class GraphVocabularyResponse(BaseModel):
     entries: list[GraphVocabularyEntry]
     has_more: bool
+    allowed_characters: list[str] | None = None
 
 
 class CharacterComponent(BaseModel):
@@ -116,12 +117,18 @@ def create_app(db_file: Path | None = None, *, resources: Path | None = None,
 
     app = FastAPI(title="Zidi dictionary", lifespan=lifespan)
 
+    @app.get("/api/graph/neighborhood", response_model=GraphVocabularyResponse)
+    def neighborhood(target: str = Query(min_length=1, max_length=200),
+                     limit: int = Query(default=50, ge=1, le=300),
+                     levels: list[Annotated[int, Query(ge=1, le=7)]] = Query(default=[], max_length=7)):
+        return graph_neighborhood(database, target, limit, levels)
+
     @app.get("/api/graph/vocabulary", response_model=GraphVocabularyResponse)
-    def vocabulary(level: int = Query(default=1, ge=1, le=7),
+    def vocabulary(levels: list[Annotated[int, Query(ge=1, le=7)]] = Query(default=[1], max_length=7),
                    limit: int = Query(default=200, ge=1, le=300),
                    character: str | None = Query(default=None, min_length=1, max_length=1),
                    exclude: list[str] = Query(default=[], max_length=500)):
-        return graph_vocabulary(database, level, limit, character, exclude)
+        return graph_vocabulary(database, levels, limit, character, exclude)
 
     @app.get("/api/dictionary/search", response_model=SearchResponse)
     def search(q: str = Query(min_length=1, max_length=200),
